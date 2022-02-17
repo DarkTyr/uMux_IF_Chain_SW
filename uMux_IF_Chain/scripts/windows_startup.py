@@ -18,8 +18,7 @@ if (__name__ == '__main__'):
     
     tyr = base_board_rev3.Base_Board_Rev3(COM_PORT)
     tyr.get_devce_info()
-    ifb = uMux_IF_Rev1.UMux_IF_Rev1(0x1)
-    ifb.link_methods(tyr.spi_write, tyr.spi_read)
+    ifb = uMux_IF_Rev1.UMux_IF_Rev1(tyr, 0x1)
 
     def synth_config_first():
     #     for i in range(len(data)-20):
