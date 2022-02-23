@@ -11,6 +11,7 @@ import time
 # local imports
 # from devices import tmp275
 from uMux_IF_Chain.devices import tmp275
+from uMux_IF_Chain.devices import lmx2592
 
 class _CMD:
     R = 0x01
@@ -60,24 +61,22 @@ class UMux_IF_Rev1:
         self._spi_read = None
         self._dac_nbits = 14
         self.debug = 1
-        self._delay = 0.01
-        self.blank = None
+        self._delay = 0.005
         self._tmp = tmp275.TMP275(0x48)
+        self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, 100)
 
-    def _write(self, data):
+    def _write(self, data: list[int]) -> None:
         if(self.debug):
             print("uMux_IF_Rev1._write(): _cs={} data={}".format(self._cs, data))
-        # self._spi_write(self._cs, data)
         self._bb.spi_write(self._cs, data)
 
-    def _read(self, nBytes):
-        # ret = self._spi_read(self._cs, nBytes)
+    def _read(self, nBytes: int) -> list[int]:
         ret = self._bb.spi_read(self._cs, nBytes)
         if(self.debug):
             print("uMux_IF_Rev1._read(): _cs={} nBytes={} ret={}".format(self._cs, nBytes, ret))
         return ret
 
-    def _write_read(self, nBytes_read, data):
+    def _write_read(self, nBytes_read: int, data: list[int]) -> list[int]:
         ret = self._bb.spi_write_read(self._cs, nBytes_read, data)
         if(self.debug):
             print("uMux_IF_Rev1._write_read(): _cs={} nBytes={}\n\tdata={}\n\tret={}" \
@@ -85,7 +84,7 @@ class UMux_IF_Rev1:
         return ret
 
 
-    def base_band_loop_back_enable(self):
+    def base_band_loop_back_enable(self) -> None:
         data = [0x00] * _CMD.CMD_LEN
         data[0] = (_CMD.FW_BB_LB << 1) | _CMD.W
         data[1] = 0x01
@@ -97,7 +96,7 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
-    def base_band_loop_back_disable(self):
+    def base_band_loop_back_disable(self) -> None:
         data = [0x00] * _CMD.CMD_LEN
         data[0] = (_CMD.FW_BB_LB << 1) | _CMD.W
         data[1] = 0x00
@@ -109,7 +108,7 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
-    def nulling_up(self, dac_val_I: int, dac_val_Q: int):
+    def nulling_up(self, dac_val_I: int, dac_val_Q: int) -> None:
         if(dac_val_I > 2**self._dac_nbits):
             print("Value too high: dac_val_I")
             return
@@ -138,7 +137,7 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
-    def nulling_dn(self, dac_val_I, dac_val_Q):
+    def nulling_dn(self, dac_val_I: int, dac_val_Q: int) -> None:
         if(dac_val_I > (2**self._dac_nbits - 1)):
             print("Value too high: dac_val_I")
             return
@@ -167,18 +166,28 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
-    def synth_init(self):
+    def synth_init(self) -> None:
         data = [0x00] * _CMD.CMD_LEN
         data[0] = (_CMD.SYNTH_INIT << 1) | _CMD.W
         self._write(data)
         time.sleep(self._delay)
         ret = self._read(_RET_VAL.RET_LEN)
         if(ret[0] & _RET_VAL.MASK_WRITE_GOOD):
-            return
+            pass
         else:
             print("Write Failed")
+            return
+        self._lmx.synth_init()
 
-    def synth_write(self, data):
+    def synth_set_Frequency_MHz(self, Freq_MHz) -> float:
+        real_freq = self._lmx.set_Frequency_MHz(Freq_MHz)
+        if(real_freq != Freq_MHz):
+            print("WARNING: Requested Frequency is not exactly equal to the Real Frequency\n"
+                + "\tRequested Frequency = {} MHz\n".format(Freq_MHz)
+                + "\t     Real Frequency = {} MHz\n".format(real_freq))
+        return real_freq
+
+    def _synth_write_int(self, data: int) -> None:
         array = [0x0] * _CMD.CMD_LEN
         array[0] = (_CMD.SYNTH_WRITE << 1) | _CMD.W
         array[1] = (data >> 16) & 0xFF
@@ -192,7 +201,21 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
-    def synth_read(self, reg):
+    def _synth_write_array(self, data: list[int]) -> None:
+        array = [0x0] * _CMD.CMD_LEN
+        array[0] = (_CMD.SYNTH_WRITE << 1) | _CMD.W
+        array[1] = data[0]
+        array[2] = data[1]
+        array[3] = data[2]
+        self._write(array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_WRITE_GOOD):
+            return
+        else:
+            print("Write Failed")
+
+    def _synth_read_array(self, reg: int) -> list[int]:
         array = [0x0] * _CMD.CMD_LEN
         array[0] = (_CMD.SYNTH_WRITE << 1) | _CMD.R
         array[1] = reg & 0xFF
@@ -204,7 +227,20 @@ class UMux_IF_Rev1:
         else:
             print("Read Failed")
 
-    def read_temperatures_F(self):
+    def _synth_read_int(self, reg: int) -> int:
+        array = [0x0] * _CMD.CMD_LEN
+        array[0] = (_CMD.SYNTH_WRITE << 1) | _CMD.R
+        array[1] = reg & 0xFF
+        self._write(array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD):
+            return int((ret[1] << 8) | ret[2])
+        else:
+            print("Read Failed")
+            return []
+
+    def read_temperatures_F(self) -> tuple[float, float]:
         array = [0x00] * _CMD.CMD_LEN
         array[0] = (_CMD.TEMP_READ << 1) | _CMD.R
         self._write(array)
@@ -218,7 +254,7 @@ class UMux_IF_Rev1:
             print("Read Local Tempereatures Failed")
             return (None, None)
 
-    def read_temperatures_C(self):
+    def read_temperatures_C(self) -> tuple[float, float]:
         array = [0x00] * _CMD.CMD_LEN
         array[0] = (_CMD.TEMP_READ << 1) | _CMD.R
         self._write(array)
@@ -232,7 +268,7 @@ class UMux_IF_Rev1:
             print("Read Local Tempereatures Failed")
             return (None, None)
 
-    def spi_loopback(self, nBytes, nItter):
+    def spi_loopback(self, nBytes: int, nItter: int) -> int:
         import random
         if(nBytes > 255):
             print("nBytes can not be greater than 255")
@@ -271,7 +307,7 @@ class UMux_IF_Rev1:
         prev_data[0] = _RET_VAL.MASK_WRITE_GOOD
         data_array = [random.randint(0, 255) for p in range(0, nBytes)]
         data_array[0] = (_CMD.NULL << 1) | _CMD.W
-        time.sleep(0.001)   ## 1ms sleep to igve IF MCU time to move data and restart DMA 
+        time.sleep(0.001)   ## 1ms sleep to give IF MCU time to move data and restart DMA 
         ret = self._write_read(nBytes, data_array)
         if(self.debug):
             print("\tprev_data={}\n\tret_data={}".format(prev_data, ret))

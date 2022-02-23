@@ -29,7 +29,7 @@ if (__name__ == '__main__'):
         for reg in data:
             print(reg[0])
             reg_val = int(reg[1], base=16)
-            ifb.synth_write(reg_val)
+            ifb.synth_write_int(reg_val)
             time.sleep(0.01)
 
     # def synth_config_second():
