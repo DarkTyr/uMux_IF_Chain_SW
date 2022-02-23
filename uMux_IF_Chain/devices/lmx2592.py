@@ -56,8 +56,8 @@ class _PLL_Config:
         self.N, remain = divmod(Freq_MHz*1e6, pfd_MHz*1e6 * (2 + 2*self.vco_x2))
         self.N = int(self.N)    # Odd issue where divmod can return a float type
         self.Num = int(remain/(pfd_MHz*1e6 * (2 + 2*self.vco_x2))*self.Den)
-        F_real = float(pfd_MHz*1e6) * (self.N+(self.Num/self.Den))*(2+2*self.vco_x2)/1e6
-        return float(F_real)
+        F_real_MHz = float(pfd_MHz*1e6) * (self.N+(self.Num/self.Den))*(2+2*self.vco_x2)/1e6
+        return float(F_real_MHz)
 
 class LMX2592:
     def __init__(self, func_spi_write: Callable, func_spi_read: Callable, ref_freq_MHz) -> None:

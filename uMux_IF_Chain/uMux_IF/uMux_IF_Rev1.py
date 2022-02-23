@@ -180,12 +180,12 @@ class UMux_IF_Rev1:
         self._lmx.synth_init()
 
     def synth_set_Frequency_MHz(self, Freq_MHz) -> float:
-        real_freq = self._lmx.set_Frequency_MHz(Freq_MHz)
-        if(real_freq != Freq_MHz):
+        real_freq_MHz = self._lmx.set_Frequency_MHz(Freq_MHz)
+        if(real_freq_MHz != Freq_MHz):
             print("WARNING: Requested Frequency is not exactly equal to the Real Frequency\n"
                 + "\tRequested Frequency = {} MHz\n".format(Freq_MHz)
-                + "\t     Real Frequency = {} MHz\n".format(real_freq))
-        return real_freq
+                + "\t     Real Frequency = {} MHz\n".format(real_freq_MHz))
+        return real_freq_MHz
 
     def _synth_write_int(self, data: int) -> None:
         array = [0x0] * _CMD.CMD_LEN
