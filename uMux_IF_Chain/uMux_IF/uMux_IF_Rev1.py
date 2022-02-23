@@ -53,6 +53,18 @@ class _RET_VAL:
     MASK_RSVD = 0x1 << 6
     MASK_OVERHEAT = 0x1 << 7
 
+class _GPIO:
+    PIN_Slave_nINT      = 0x1 << 0
+    PIN_Vref_En         = 0x1 << 1
+    PIN_Local_I2C_SCL   = 0x1 << 2
+    PIN_Local_I2C_SDA   = 0x1 << 3
+    PIN_Op_Amp_SHDN     = 0x1 << 4
+    PIN_EEPROM_nCS      = 0x1 << 5
+    PIN_Synth_En        = 0x1 << 6
+    PIN_Slave_nRST      = 0x1 << 7
+    PIN_EEPROM_nWP      = 0x1 << 8
+
+
 class UMux_IF_Rev1:
     def __init__(self, base_board, chip_select):
         self._cs = chip_select
@@ -108,7 +120,7 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
-    def nulling_up(self, dac_val_I: int, dac_val_Q: int) -> None:
+    def nulling_up_set(self, dac_val_I: int, dac_val_Q: int) -> None:
         if(dac_val_I > 2**self._dac_nbits):
             print("Value too high: dac_val_I")
             return
@@ -137,7 +149,7 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
-    def nulling_dn(self, dac_val_I: int, dac_val_Q: int) -> None:
+    def nulling_dn_set(self, dac_val_I: int, dac_val_Q: int) -> None:
         if(dac_val_I > (2**self._dac_nbits - 1)):
             print("Value too high: dac_val_I")
             return
@@ -178,6 +190,21 @@ class UMux_IF_Rev1:
             print("Write Failed")
             return
         self._lmx.synth_init()
+
+    def synth_lock_status(self) -> bool:
+        data = [0x00] * _CMD.CMD_LEN
+        data[0] = (_CMD.SYNTH_SR << 1) | _CMD.R
+        self._write(data)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD):
+            if(ret[1] == 0xFF):
+                return True
+            else:
+                return False
+        else:
+            print("Write Failed")
+            return None
 
     def synth_set_Frequency_MHz(self, Freq_MHz) -> float:
         real_freq_MHz = self._lmx.set_Frequency_MHz(Freq_MHz)
