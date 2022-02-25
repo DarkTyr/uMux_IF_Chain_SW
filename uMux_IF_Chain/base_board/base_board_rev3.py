@@ -362,6 +362,30 @@ class Base_Board_Rev3:
                 ret_array[i] = int(data2[i], base=16)
         return ret_array
 
+    def spi_get_dev_stack(self) -> int:
+        str_to_write = 'SPI:DEV_STACK'
+        self._write(str_to_write)
+        self._read()
+        if(self.ret_str != "OKAY"):
+            print("\tERROR: SPI_get_dev_stack Failed : " + self.ret_str)
+            return None
+        # read the returned data
+        self._read()
+        nBytes = 4
+        if(len(self.ret_str) != (nBytes << 1)):
+            print("\tERROR: Failed to return the correct number of bytes")
+            return None
+
+        # convert the string into bytes
+        self.ret_str_data = self.ret_str
+        ret_array = [int(0)] * nBytes
+        data = self.ret_str_data
+        data2 = [data[i:i + 2] for i in range(0, len(data), 2)]
+        for i in range(len(ret_array)):
+            ret_array[i] = int(data2[i], base=16)
+
+        return ret_array[2]
+
     def enable_periodic_checking(self):
         self._write("*FW_START_PER")
         self._read()
