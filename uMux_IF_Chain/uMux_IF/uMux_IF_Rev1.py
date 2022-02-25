@@ -71,7 +71,9 @@ class UMux_IF_Rev1:
         self._bb = base_board
         self._dac_nbits = 14
         self.debug = 1
-        self._delay = 0.005
+        # self._delay = 0.005
+        self._delay = 0.03
+        self._delay_i2c = 0.1
         self._tmp = tmp275.TMP275(0x48)
         self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, 100)
 
@@ -289,7 +291,7 @@ class UMux_IF_Rev1:
         array = [0x00] * _CMD.CMD_LEN
         array[0] = (_CMD.TEMP_READ << 1) | _CMD.R
         self._write(array)
-        time.sleep(self._delay)
+        time.sleep(self._delay + self._delay_i2c)
         ret = self._read(_RET_VAL.RET_LEN)
         if(ret[0] & _RET_VAL.MASK_READ_GOOD):
             synth_temp_F = self._tmp.convert_int2temp_F(ret[1:3])
@@ -303,7 +305,7 @@ class UMux_IF_Rev1:
         array = [0x00] * _CMD.CMD_LEN
         array[0] = (_CMD.TEMP_READ << 1) | _CMD.R
         self._write(array)
-        time.sleep(self._delay)
+        time.sleep(self._delay + self._delay_i2c)
         ret = self._read(_RET_VAL.RET_LEN)
         if(ret[0] & _RET_VAL.MASK_READ_GOOD):
             synth_temp_F = self._tmp.convert_int2temp_C(ret[1:3])
@@ -340,7 +342,7 @@ class UMux_IF_Rev1:
             prev_data[0] = _RET_VAL.MASK_WRITE_GOOD
             data_array = [random.randint(0, 255) for p in range(0, nBytes)]
             data_array[0] = (_CMD.SPI_LOOPBACK << 1) | _CMD.W
-            time.sleep(0.001)   ## 1ms sleep to give IF MCU time to move data and restart DMA
+            # time.sleep(0.0005)   ## 1ms sleep to give IF MCU time to move data and restart DMA
             ret = self._write_read(nBytes, data_array)
             if(self.debug):
                 print("\tprev_data={}\n\tret_data={}".format(prev_data, ret))
@@ -352,7 +354,7 @@ class UMux_IF_Rev1:
         prev_data[0] = _RET_VAL.MASK_WRITE_GOOD
         data_array = [random.randint(0, 255) for p in range(0, nBytes)]
         data_array[0] = (_CMD.NULL << 1) | _CMD.W
-        time.sleep(0.001)   ## 1ms sleep to give IF MCU time to move data and restart DMA 
+        time.sleep(0.0005)   ## 1ms sleep to give IF MCU time to move data and restart DMA 
         ret = self._write_read(nBytes, data_array)
         if(self.debug):
             print("\tprev_data={}\n\tret_data={}".format(prev_data, ret))
