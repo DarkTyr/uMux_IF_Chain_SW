@@ -364,9 +364,11 @@ class Base_Board_Rev3:
 
     def enable_periodic_checking(self):
         self._write("*FW_START_PER")
+        self._read()
 
     def disable_periodic_checking(self):
         self._write("*FW_STOP_PER")
+        self._read()
 
     def read_temp_C(self):
         center_tempereature = self.tmp_center.read_temp_C()
