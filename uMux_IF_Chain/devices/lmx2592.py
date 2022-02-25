@@ -193,7 +193,7 @@ class LMX2592:
 
         else:
             print("The software does not know what to do when there is a Ref Freq of {} MHz".format(self._ref_freq_MHz))
-        
+    
     def powerdown_bit(self):
         if(self.debug):
             print(self.powerdown_bit.__qualname__+"()")
