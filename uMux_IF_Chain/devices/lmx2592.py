@@ -113,12 +113,12 @@ class LMX2592:
         self._spi_write(data)
         return real_freq
 
-    def triger_cal(self) -> None:
+    def trigger_cal(self) -> None:
         if(self.debug):
-            print(self._trig_cal.__qualname__+"()")
+            print(self.trigger_cal.__qualname__+"()")
         data_out = [0x00] * 3
         data_in = self._spi_read(0x00)
-        data_out[0] = 0x00
+        data_out[0] = self._R0.REG_NUM
         data_out[1] = data_in[0]
         data_out[2] = data_in[1] | (self._R0.FCAL_EN << self._R0.BIT_FCAL_EN)
         self._spi_write(data_out)
