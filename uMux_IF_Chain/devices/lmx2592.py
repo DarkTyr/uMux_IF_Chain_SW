@@ -193,4 +193,24 @@ class LMX2592:
 
         else:
             print("The software does not know what to do when there is a Ref Freq of {} MHz".format(self._ref_freq_MHz))
-    
+        
+    def powerdown_bit(self):
+        if(self.debug):
+            print(self.powerdown_bit.__qualname__+"()")
+        data = [0x00] * 3
+        self._R0.cur = self._spi_read(self._R0.REG_NUM)
+        data[0] = self._R0.REG_NUM
+        data[1] = self._R0.cur[0]
+        data[2] = self._R0.cur[1] | self._R0.MASK_POWERDOWN
+        self._spi_write(data)
+
+    def powerup_bit(self):
+        if(self.debug):
+            print(self.powerup_bit.__qualname__+"()")
+        data = [0x00] * 3
+        self._R0.cur = self._spi_read(self._R0.REG_NUM)
+        data[0] = self._R0.REG_NUM
+        data[1] = self._R0.cur[0]
+        data[2] = self._R0.cur[1] & ~self._R0.MASK_POWERDOWN
+        self._spi_write(data)
+
