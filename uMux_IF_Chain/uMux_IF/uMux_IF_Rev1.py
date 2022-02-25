@@ -212,6 +212,12 @@ class UMux_IF_Rev1:
                 + "\t     Real Frequency = {} MHz\n".format(real_freq_MHz))
         return real_freq_MHz
 
+    def synth_powerdown_bit(self):
+        self._lmx.powerdown_bit()
+
+    def synth_powerup_bit(self):
+        self._lmx.powerup_bit()
+
     def _synth_write_int(self, data: int) -> None:
         array = [0x0] * _CMD.CMD_LEN
         array[0] = (_CMD.SYNTH_WRITE << 1) | _CMD.W
