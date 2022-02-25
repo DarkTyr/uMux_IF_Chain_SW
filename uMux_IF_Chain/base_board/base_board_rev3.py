@@ -342,7 +342,7 @@ class Base_Board_Rev3:
         self._read()
         if(self.ret_str != "OKAY"):
             print("\tERROR: SPI_Read Failed : " + self.ret_str)
-            return
+            return []
         elif(self.auto_print > 0):
             print('\t' + self.ret_str)
 
