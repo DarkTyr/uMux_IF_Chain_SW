@@ -69,8 +69,6 @@ class UMux_IF_Rev1:
     def __init__(self, base_board, chip_select):
         self._cs = chip_select
         self._bb = base_board
-        self._spi_write = None
-        self._spi_read = None
         self._dac_nbits = 14
         self.debug = 1
         self._delay = 0.005
@@ -78,14 +76,14 @@ class UMux_IF_Rev1:
         self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, 100)
 
     def _write(self, data: list[int]) -> None:
+        self._bb.spi_write(self._cs, data)
         if(self.debug):
             print("uMux_IF_Rev1._write(): _cs={} data={}".format(self._cs, data))
-        self._bb.spi_write(self._cs, data)
 
     def _read(self, nBytes: int) -> list[int]:
         ret = self._bb.spi_read(self._cs, nBytes)
         if(self.debug):
-            print("uMux_IF_Rev1._read(): _cs={} nBytes={} ret={}".format(self._cs, nBytes, ret))
+            print("uMux_IF_Rev1._read():  _cs={} nBytes={} ret={}".format(self._cs, nBytes, ret))
         return ret
 
     def _write_read(self, nBytes_read: int, data: list[int]) -> list[int]:
@@ -226,7 +224,10 @@ class UMux_IF_Rev1:
         if(ret[0] & _RET_VAL.MASK_WRITE_GOOD):
             return
         else:
-            print("Write Failed")
+            print("_synth_write_int Failed : \n"
+                + "\t _cs={}\n".format(self._cs)
+                + "\tdata=0x{}\n".format(data)
+                + "\t ret=0x{}\n".format(ret))
 
     def _synth_write_array(self, data: list[int]) -> None:
         array = [0x0] * _CMD.CMD_LEN
@@ -240,7 +241,11 @@ class UMux_IF_Rev1:
         if(ret[0] & _RET_VAL.MASK_WRITE_GOOD):
             return
         else:
-            print("Write Failed")
+            print("_synth_write_array Failed : \n"
+                + "\t  _cs={}\n".format(self._cs)
+                + "\t data={}\n".format(data)
+                + "\tarray={}\n".format(array)
+                + "\t  ret={}\n".format(ret))
 
     def _synth_read_array(self, reg: int) -> list[int]:
         array = [0x0] * _CMD.CMD_LEN
@@ -252,7 +257,11 @@ class UMux_IF_Rev1:
         if(ret[0] & _RET_VAL.MASK_READ_GOOD):
             return ret[1:3]
         else:
-            print("Read Failed")
+            print("_synth_read_array Failed : \n"
+                + "\t  _cs={}\n".format(self._cs)
+                + "\t  reg={}\n".format(reg)
+                + "\tarray={}\n".format(array)
+                + "\t  ret={}\n".format(ret))
 
     def _synth_read_int(self, reg: int) -> int:
         array = [0x0] * _CMD.CMD_LEN
@@ -264,7 +273,10 @@ class UMux_IF_Rev1:
         if(ret[0] & _RET_VAL.MASK_READ_GOOD):
             return int((ret[1] << 8) | ret[2])
         else:
-            print("Read Failed")
+            print("_synth_read_int Failed : \n"
+                + "\t _cs={}\n".format(self._cs)
+                + "\t reg={}\n".format(reg)
+                + "\t ret={}\n".format(ret))
             return []
 
     def read_temperatures_F(self) -> tuple[float, float]:
