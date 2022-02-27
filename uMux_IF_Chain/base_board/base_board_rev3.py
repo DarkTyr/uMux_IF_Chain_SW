@@ -17,7 +17,7 @@ class Base_Board_Rev3:
         if(port == ''):
             raise IOError("There is no default serial com port, user must tell Tyr_Serial_IF what port to use")
         self.port = port    # Serial port we are supposed to communicate with
-        self.com = serial.Serial(port=self.port, timeout=5, write_timeout=5) # PySerial object
+        self.com = serial.Serial(port=self.port, timeout=6, write_timeout=6) # PySerial object
         self.ret_int = 0         # Number of bytes sent to the VCP
         self.sent_str = ''       # holder for the string that was sent to the device
         self.rcvd_str = ''       # place to hold that the command was received by the firmware
@@ -31,6 +31,7 @@ class Base_Board_Rev3:
         self.fw_version = ''
         self.fw_description = ''
         self.fw_timestamp = ''
+        # Local Devices
         self.tmp_center = tmp275.TMP275(0x48)
         self.tmp_center.link_methods(self.i2c_write, self.i2c_write_read)
         self.tmp_power_converter = tmp275.TMP275(0x49)

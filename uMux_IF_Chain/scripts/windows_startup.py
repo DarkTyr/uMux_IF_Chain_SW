@@ -43,19 +43,26 @@ if (__name__ == '__main__'):
 
         cur_time = time.monotonic()
         #main loop
-        for i in tqdm.tqdm(range(itter)):
+        for x in tqdm.tqdm(range(itter)):
             #inner loop
             for i in ifb:
                 i.data_fail += i.spi_loopback(nBytes, inner_itter)
+            # time.sleep(0.001)
         nxt_time = time.monotonic()
         print("Complete!")
         print("long_data_check(itter={}, nBytes={}, inner_itter={})\n".format(itter, nBytes, inner_itter)
             + "\tResults:")
+
+        total_data_MB = itter*nBytes*inner_itter/1024/1024
+        total_time_s = nxt_time-cur_time
         for i in ifb:
             print("\tCS={}, Fails={}".format(i._cs, i.data_fail))
         print("Statistics:\n"
-            + "\t    Total Time : {} s\n".format(nxt_time-cur_time)
-            + "\t               : {} min\n".format((nxt_time-cur_time)/60)
-            + "\t               : {} hr\n".format((nxt_time-cur_time)/60/60)
-            + "\t    Total Data : {} MB\n".format(itter*nBytes*inner_itter/1024/1024)
-            + "\tOne Board data : {} MB\n".format(itter*nBytes*inner_itter/1024/1024/8))
+            + "\t    Total Time : {} s\n".format(total_time_s)
+            + "\t               : {} min\n".format((total_time_s)/60)
+            + "\t               : {} hr\n".format((total_time_s)/60/60)
+            + "\t    Total Data : {} MB\n".format(total_data_MB)
+            + "\tOne Board data : {} MB\n".format(total_data_MB/len(ifb))
+            + "\t     Data Rate : {} MB/s\n".format(total_data_MB/total_time_s)
+            + "\t               : {} kB/s".format(total_data_MB/total_time_s*1024)
+            )

@@ -72,8 +72,8 @@ class UMux_IF_Rev1:
         self._dac_nbits = 14
         self.debug = 1
         # self._delay = 0.005
-        self._delay = 0.03
-        self._delay_i2c = 0.1
+        self._delay = 0.0
+        self._delay_i2c = 0.0
         self._tmp = tmp275.TMP275(0x48)
         self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, 100)
 
@@ -335,9 +335,9 @@ class UMux_IF_Rev1:
         data_array = [random.randint(0, 255) for p in range(0, nBytes)]
         data_array[0] = (_CMD.SPI_LOOPBACK << 1) | _CMD.W
         time.sleep(self._delay)
-        self._write(data_array)
+        ret = self._write_read(nBytes, data_array)
         i = 0
-        while(i < nItter):
+        while(i <= nItter):
             prev_data = data_array
             prev_data[0] = _RET_VAL.MASK_WRITE_GOOD
             data_array = [random.randint(0, 255) for p in range(0, nBytes)]
@@ -354,7 +354,7 @@ class UMux_IF_Rev1:
         prev_data[0] = _RET_VAL.MASK_WRITE_GOOD
         data_array = [random.randint(0, 255) for p in range(0, nBytes)]
         data_array[0] = (_CMD.NULL << 1) | _CMD.W
-        time.sleep(0.0005)   ## 1ms sleep to give IF MCU time to move data and restart DMA 
+        # time.sleep(0.0005)   ## 1ms sleep to give IF MCU time to move data and restart DMA
         ret = self._write_read(nBytes, data_array)
         if(self.debug):
             print("\tprev_data={}\n\tret_data={}".format(prev_data, ret))
