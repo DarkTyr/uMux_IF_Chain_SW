@@ -5,5 +5,5 @@ Microwave Multiplexer Intermediate Frequency Conversion Chain Software
 https://setuptools.pypa.io/en/latest/userguide/development_mode.html
 
 ```
-python setup.py develop
+pip install -e .
 ```
