@@ -95,7 +95,6 @@ class UMux_IF_Rev1:
                   .format(self._cs, nBytes_read, data, ret))
         return ret
 
-
     def base_band_loop_back_enable(self) -> None:
         data = [0x00] * _CMD.CMD_LEN
         data[0] = (_CMD.FW_BB_LB << 1) | _CMD.W
@@ -148,6 +147,20 @@ class UMux_IF_Rev1:
             return
         else:
             print("Write Failed")
+    
+    def nulling_up_get(self) -> tuple[int, int]:
+        data = [0x00] * _CMD.CMD_LEN
+        data[0] = (_CMD.NULLING_UP << 1) | _CMD.R
+        self._write(data)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD):
+            dac0 = ((ret[1] << 8) | ret[2]) >> 2
+            dac1 = ((ret[3] << 8) | ret[4]) >> 2
+            return (dac0, dac1)
+        else:
+            print("Write Failed")
+            return (None, None)
 
     def nulling_dn_set(self, dac_val_I: int, dac_val_Q: int) -> None:
         if(dac_val_I > (2**self._dac_nbits - 1)):
@@ -178,6 +191,20 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
+    def nulling_dn_get(self) -> tuple[int, int]:
+        data = [0x00] * _CMD.CMD_LEN
+        data[0] = (_CMD.NULLING_DN << 1) | _CMD.R
+        self._write(data)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD):
+            dac0 = ((ret[1] << 8) | ret[2]) >> 2
+            dac1 = ((ret[3] << 8) | ret[4]) >> 2
+            return (dac0, dac1)
+        else:
+            print("Write Failed")
+            return(None, None)
+
     def synth_init(self) -> None:
         data = [0x00] * _CMD.CMD_LEN
         data[0] = (_CMD.SYNTH_INIT << 1) | _CMD.W
@@ -206,6 +233,10 @@ class UMux_IF_Rev1:
             print("Write Failed")
             return None
 
+    def synth_get_Frequency_MHz(self) -> float:
+        real_freq_MHz = self._lmx.get_Frequency_MHz()
+        return real_freq_MHz
+
     def synth_set_Frequency_MHz(self, Freq_MHz) -> float:
         real_freq_MHz = self._lmx.set_Frequency_MHz(Freq_MHz)
         if(real_freq_MHz != Freq_MHz):
@@ -214,10 +245,10 @@ class UMux_IF_Rev1:
                 + "\t     Real Frequency = {} MHz\n".format(real_freq_MHz))
         return real_freq_MHz
 
-    def synth_powerdown_bit(self):
+    def synth_powerdown_bit(self) -> None:
         self._lmx.powerdown_bit()
 
-    def synth_powerup_bit(self):
+    def synth_powerup_bit(self) -> None:
         self._lmx.powerup_bit()
 
     def _synth_write_int(self, data: int) -> None:

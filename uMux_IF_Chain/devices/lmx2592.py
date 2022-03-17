@@ -32,32 +32,46 @@ class _REG:
     PLL_DEN_LOW = 41
     PLL_NUM_HIGH = 44
     PLL_NUM_LOW = 45
+    PLL_VCO_2X = 30
 
 class _PLL_Config:
     def __init__(self, F_ref_MHz: float) -> None:
         self.N = 9
         self.Den = 1000
         self.Num = 0
-        self.Pre_N = False
         self.F_REF_MHZ = F_ref_MHz
         self.ref_x2 = False
         self.vco_x2 = False
-        self.F_vco = 0
+        self.Freq = 0
 
     def desired_Freq(self, Freq_MHz: float) -> float:
-        pfd_MHz = (1+1*self.ref_x2) * self.F_REF_MHZ
+        pfd_MHz = (1 + 1 * self.ref_x2) * self.F_REF_MHZ
         if(Freq_MHz < 3550):
             return 0
         elif (Freq_MHz > 7100):
-            return 0
+            self.vco_x2 = True
         else:
-            pass
+            self.vco_x2 = False
 
-        self.N, remain = divmod(Freq_MHz*1e6, pfd_MHz*1e6 * (2 + 2*self.vco_x2))
+        self.N, remain = divmod(Freq_MHz * 1e6, pfd_MHz*1e6 * (2 + 2 * self.vco_x2))
         self.N = int(self.N)    # Odd issue where divmod can return a float type
         self.Num = int(remain/(pfd_MHz*1e6 * (2 + 2*self.vco_x2))*self.Den)
-        F_real_MHz = float(pfd_MHz*1e6) * (self.N+(self.Num/self.Den))*(2+2*self.vco_x2)/1e6
-        return float(F_real_MHz)
+        F_real_MHz = float(pfd_MHz*1e6) * (self.N + (self.Num/self.Den))*(2+2*self.vco_x2)/1e6
+        self.Freq = round(F_real_MHz, 6)
+        return float(self.Freq)
+
+    def Cur_Freq(self, N: int, Den: int, Num: int, vco_x2: bool) -> float:
+        self.N = N
+        if(Den > 0):
+            self.Den = Den
+        else:
+            self.Den = 1
+        self.Num = Num
+        self.vco_x2 = vco_x2
+        pfd_MHz = (1 + 1 * self.ref_x2) * self.F_REF_MHZ
+        F_real_MHz = float(pfd_MHz*1e6) * (self.N + (self.Num/self.Den))*(2+2*self.vco_x2)/1e6
+        self.Freq = round(F_real_MHz, 6)
+        return float(self.Freq)
 
 class LMX2592:
     def __init__(self, func_spi_write: Callable, func_spi_read: Callable, ref_freq_MHz) -> None:
@@ -67,6 +81,40 @@ class LMX2592:
         self._pll = _PLL_Config(self._ref_freq_MHz)
         self._R0 = _R0()
         self.debug = 1
+
+    def get_Frequency_MHz(self) -> float:
+        if(self.debug):
+            print(self.get_Frequency_MHz.__qualname__+"()")
+
+        temp = self._spi_read(_REG.PLL_DEN_HIGH)
+        Den = temp[0] << 24 | temp[1] << 16
+        temp = self._spi_read(_REG.PLL_DEN_LOW)
+        Den += temp[0] << 8 | temp[1] << 0
+        if(self.debug):
+            print("\tDen = {}".format(Den))
+
+        temp = self._spi_read(_REG.PLL_NUM_HIGH)
+        Num = temp[0] << 24 | temp[1] << 16
+        temp = self._spi_read(_REG.PLL_NUM_LOW)
+        Num += temp[0] << 8 | temp[1] << 0
+        if(self.debug):
+            print("\tNum = {}".format(Num))
+            
+        temp = self._spi_read(_REG.PLL_N)
+        N = temp[0] << 7 | temp[1] >> 1
+        if(self.debug):
+            print("\t  N = {}".format(N))
+            
+        temp = self._spi_read(_REG.PLL_VCO_2X)
+        if(temp[0] & 0x1):
+            vco_2x = True
+        else:
+            vco_2x = False
+        if(self.debug):
+            print("\tVCO_2x = {}".format(vco_2x))
+
+        cur_freq = self._pll.Cur_Freq(N, Den, Num, vco_2x)
+        return cur_freq
 
     def set_Frequency_MHz(self, Freq_MHz: float) -> float:
         '''
