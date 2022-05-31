@@ -80,7 +80,7 @@ class LMX2592:
         self._ref_freq_MHz = ref_freq_MHz
         self._pll = _PLL_Config(self._ref_freq_MHz)
         self._R0 = _R0()
-        self.debug = 1
+        self.debug = 0
 
     def get_Frequency_MHz(self) -> float:
         if(self.debug):
