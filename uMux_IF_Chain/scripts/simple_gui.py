@@ -182,7 +182,6 @@ if (__name__ == '__main__'):
         n_ifb = 4
     root = tk.Tk()
 
-    ifb_opts = [0, 1, 2, 3]
     ifb_opts = [*range(0, n_ifb)]
 
     dropdown_var = tk.IntVar()

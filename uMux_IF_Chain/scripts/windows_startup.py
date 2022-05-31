@@ -34,7 +34,7 @@ if (__name__ == '__main__'):
         bb.auto_print = 1
     elif(args.verbosity == 2):
         bb.auto_print = 2
-        
+
     print("")
 
     # Determine what IF_Boards Rev1 are present
