@@ -1,10 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='uMux_IF_Chain_SW',
     version='0.0.0',
-    packages=['uMux_IF_Chain'],
+    packages=find_packages(),
     install_requires=[
         'pyserial',
+        'tqdm',  
     ],
 )
