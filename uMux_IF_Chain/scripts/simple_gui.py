@@ -33,7 +33,7 @@ if (__name__ == '__main__'):
     parser.add_argument("com_port", help="Com Port to communicate with Base Board")
     parser.add_argument("-f", "--file", help="Synthesizer Init File, used when synth_config_from_file() is called", default=SYTNH_CONFIG_FILE)
     parser.add_argument("-v", "--verbosity", help="Set terminal debugging verbosity", action="count", default=0)
-    parser.add_argument("-t", "--test", help="Allows running without hardware")
+    parser.add_argument("-t", "--test", help="Allows running without hardware", action="store_true")
     args = parser.parse_args()
 
     def init_scales():
