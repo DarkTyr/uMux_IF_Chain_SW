@@ -44,14 +44,14 @@ class _CMD:
 class _RET_VAL:
     RET_LEN = 6
 
-    MASK_WRITE_GOOD = 0x1 << 0
-    MASK_READ_GOOD = 0x1 << 1
-    MASK_INVALID_CMD = 0x1 << 2
-    MASK_I2C_NACK = 0x1 << 3
+    MASK_WRITE_GOOD =   0x1 << 0
+    MASK_READ_GOOD =    0x1 << 1
+    MASK_INVALID_CMD =  0x1 << 2
+    MASK_I2C_NACK =     0x1 << 3
     MASK_MCU_RST_DONE = 0x1 << 4
-    MASK_BUSY = 0x1 << 5
-    MASK_RSVD = 0x1 << 6
-    MASK_OVERHEAT = 0x1 << 7
+    MASK_BUSY =         0x1 << 5
+    MASK_RSVD =         0x1 << 6
+    MASK_OVERHEAT =     0x1 << 7
 
 class _GPIO:
     PIN_Slave_nINT      = 0x1 << 0
@@ -119,6 +119,20 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
 
+    def base_band_loop_back_get(self) -> bool:
+        data = [0x00] * _CMD.CMD_LEN
+        data[0] = (_CMD.FW_BB_LB << 1) | _CMD.R
+        self._write(data)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD):
+            if(ret[1] == 0x01):
+                return True
+            elif(ret[1] == 0x00):
+                return False
+        else:
+            print("Write Failed")
+
     def nulling_up_set(self, dac_val_I: int, dac_val_Q: int) -> None:
         if(dac_val_I > 2**self._dac_nbits):
             print("Value too high: dac_val_I")
@@ -155,9 +169,9 @@ class UMux_IF_Rev1:
         time.sleep(self._delay)
         ret = self._read(_RET_VAL.RET_LEN)
         if(ret[0] & _RET_VAL.MASK_READ_GOOD):
-            dac0 = ((ret[1] << 8) | ret[2]) >> 2
-            dac1 = ((ret[3] << 8) | ret[4]) >> 2
-            return (dac0, dac1)
+            dac_val_I = ((ret[1] << 8) | ret[2]) >> 2
+            dac_val_Q = ((ret[3] << 8) | ret[4]) >> 2
+            return (dac_val_I, dac_val_Q)
         else:
             print("Write Failed")
             return (None, None)
@@ -250,6 +264,9 @@ class UMux_IF_Rev1:
 
     def synth_powerup_bit(self) -> None:
         self._lmx.powerup_bit()
+
+    def synth_powerdown_get(self) -> bool:
+        return self._lmx.powerdown_get()
 
     def _synth_write_int(self, data: int) -> None:
         array = [0x0] * _CMD.CMD_LEN
