@@ -404,3 +404,4 @@ class Base_Board_Rev3:
         center_tempereature = self.tmp_center.read_temp_F()
         power_temperature = self.tmp_power_converter.read_temp_F()
         return [center_tempereature, power_temperature]
+    
