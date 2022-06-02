@@ -189,7 +189,7 @@ class LMX2592:
         data[2] = data[2] & ~(self._R0.MASK_FCAL_EN)
         # change the MUXOUT bit
         self._spi_write(data)
-        # read the lcok status of the LMX
+        # read the lock status of the LMX
         status = self._spi_read(self._R0.REG_NUM)
         # prepare data to set back to what it was, except for the FCAL_EN bit, we don't want to trigger another calibration
         data[2] = self._R0.cur[1] & ~(self._R0.MASK_FCAL_EN)
@@ -242,7 +242,7 @@ class LMX2592:
         else:
             print("The software does not know what to do when there is a Ref Freq of {} MHz".format(self._ref_freq_MHz))
     
-    def powerdown_bit(self):
+    def powerdown_bit(self) -> None:
         if(self.debug):
             print(self.powerdown_bit.__qualname__+"()")
         data = [0x00] * 3
@@ -252,7 +252,7 @@ class LMX2592:
         data[2] = self._R0.cur[1] | self._R0.MASK_POWERDOWN
         self._spi_write(data)
 
-    def powerup_bit(self):
+    def powerup_bit(self) -> None:
         if(self.debug):
             print(self.powerup_bit.__qualname__+"()")
         data = [0x00] * 3
@@ -262,3 +262,17 @@ class LMX2592:
         data[2] = self._R0.cur[1] & ~self._R0.MASK_POWERDOWN
         self._spi_write(data)
 
+    def powerdown_get(self) -> bool:
+        if(self.debug):
+            print(self.powerdown_get.__qualname__+"()")
+            
+        self._R0.cur = self._spi_read(self._R0.REG_NUM)
+
+        if(self._R0.cur[1] & self._R0.MASK_POWERDOWN):
+            if(self.debug):
+                print("    powerdown bit is High : Shutdown")
+            return True
+        else:
+            if(self.debug):
+                print("    powerdown bit is Low : Online")
+            return False
