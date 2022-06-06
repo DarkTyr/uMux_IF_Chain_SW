@@ -522,5 +522,32 @@ class UMux_IF_Rev1:
             print("Something went wrong during writing to the EEPROM")
             return None
 
+    def _read_temp_threshold(self):
+        array = [0x00] * _CMD.CMD_LEN
+        array[0] = (_CMD.TEMP_THLD << 1) | _CMD.R
+        self._write(array)
+        time.sleep(self._delay + self._delay_i2c)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD):
+            synth_temp_F = self._tmp.convert_int2temp_C(ret[1:3])
+            mcu_temp_F = self._tmp.convert_int2temp_C(ret[3:5])
+            return (synth_temp_F, mcu_temp_F)
+        else:
+            print("Read threshold Tempereatures Failed")
+            return (None, None)
 
-    
+    def _write_temp_threshold(self, temp_C):
+        array = [0x00] * _CMD.CMD_LEN
+        array[0] = (_CMD.TEMP_THLD << 1) | _CMD.W
+        temp_var = int(temp_C / 0.0625)
+        array[1] = 0xFF & (temp_var >> 4)
+        array[2] = 0xFF & (temp_var << 4)
+        array[3] = array[1]
+        array[4] = array[2]
+        self._write(array)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_WRITE_GOOD != _RET_VAL.MASK_WRITE_GOOD):
+            print("Was unable to set temperature threshold")
+            return
+        else:
+            return
