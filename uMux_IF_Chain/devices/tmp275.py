@@ -40,3 +40,4 @@ class TMP275:
         val_float = self.convert_int2temp_C(data)
         val_float = val_float * 1.8 + 32
         return val_float
+    
