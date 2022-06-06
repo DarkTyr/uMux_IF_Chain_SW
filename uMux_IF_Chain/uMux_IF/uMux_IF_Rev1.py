@@ -7,6 +7,9 @@ that contains a tyr command processor.
 '''
 # System level imports
 import time
+from typing import final
+
+from numpy import array
 
 # local imports
 # from devices import tmp275
@@ -23,12 +26,13 @@ class _CMD:
     ISR             = 0x01
     ISR_MASK        = 0x02
     MON_CTRL        = 0x03
-    FW_ID           = 0x10
-    FW_CID          = 0x11
-    FW_BSN          = 0x12
-    FW_BB_LB        = 0x13
-    FW_PIN_CTRL     = 0x14
-    FW_SOFT_RST     = 0x15
+    FW_ID           = 0x10  # Firmware ID
+    FW_CID          = 0x11  # MCU Unique ID Number (96 Bit)
+    FW_BSN          = 0x12  # Read EEPROM to get Board Serial Number
+    FW_EEPROM       = 0x13  # Read the reported full EEPROM
+    FW_BB_LB        = 0x14
+    FW_PIN_CTRL     = 0x15
+    FW_SOFT_RST     = 0x16
     TEMP_THLD       = 0x20
     TEMP_READ       = 0x21
     NULLING_CTRL    = 0x30
@@ -40,6 +44,7 @@ class _CMD:
     SYNTH_WRITE     = 0x43
     I2C_IF          = 0x50
     SPI_LOOPBACK    = 0x51
+    PROG_EEPROM     = 0x60
 
 class _RET_VAL:
     RET_LEN = 6
@@ -71,6 +76,9 @@ class UMux_IF_Rev1:
         self._bb = base_board
         self._dac_nbits = 14
         self.debug = 1
+        self.unique_id = []
+        self.board_serial_number = []
+        self.eeprom = []
         # self._delay = 0.005
         self._delay = 0.0
         self._delay_i2c = 0.0
@@ -390,7 +398,6 @@ class UMux_IF_Rev1:
             prev_data[0] = _RET_VAL.MASK_WRITE_GOOD
             data_array = [random.randint(0, 255) for p in range(0, nBytes)]
             data_array[0] = (_CMD.SPI_LOOPBACK << 1) | _CMD.W
-            # time.sleep(0.0005)   ## 1ms sleep to give IF MCU time to move data and restart DMA
             ret = self._write_read(nBytes, data_array)
             if(self.debug):
                 print("\tprev_data={}\n\tret_data={}".format(prev_data, ret))
@@ -402,7 +409,6 @@ class UMux_IF_Rev1:
         prev_data[0] = _RET_VAL.MASK_WRITE_GOOD
         data_array = [random.randint(0, 255) for p in range(0, nBytes)]
         data_array[0] = (_CMD.NULL << 1) | _CMD.W
-        # time.sleep(0.0005)   ## 1ms sleep to give IF MCU time to move data and restart DMA
         ret = self._write_read(nBytes, data_array)
         if(self.debug):
             print("\tprev_data={}\n\tret_data={}".format(prev_data, ret))
@@ -410,3 +416,111 @@ class UMux_IF_Rev1:
             failed_compares += 1
 
         return failed_compares
+
+    def read_CID(self):
+        cmd_array = [0x00] * _CMD.CMD_LEN
+        cmd_array[0] = (_CMD.FW_CID << 1) | _CMD.R
+        self._write(cmd_array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD != _RET_VAL.MASK_READ_GOOD):
+            print("Failed to understand command, RET_VAL is not READ_GOOD")
+            return None
+        cid_size = ret[1]   # Firmware returns the CID size (96 Bits, 12 bytes, 3 words)
+        ret = self._read(cid_size)
+        self.unique_id = ret
+        return ret
+
+    def read_BSN(self):
+        cmd_array = [0x00] * _CMD.CMD_LEN
+        cmd_array[0] = (_CMD.FW_BSN << 1) | _CMD.R
+        self._write(cmd_array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD != _RET_VAL.MASK_READ_GOOD):
+            print("Failed to understand command, RET_VAL is not READ_GOOD")
+            return None
+        bsn_size = ret[1]   # Firmware returns the CID size (96 Bits, 12 bytes, 3 words)
+        ret = self._read(bsn_size)
+        self.board_serial_number = ret
+        return ret
+
+    def read_eeprom(self):
+        cmd_array = [0x00] * _CMD.CMD_LEN
+        cmd_array[0] = (_CMD.FW_EEPROM << 1) | _CMD.R
+        self._write(cmd_array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD != _RET_VAL.MASK_READ_GOOD):
+            print("Failed to understand command, RET_VAL is not READ_GOOD")
+            return None
+        eeprom_size = ret[1]
+        ret = self._read(eeprom_size)
+        self.eeprom = ret
+        return ret
+
+    def _write_eeprom(self, bsn, mcu_pn, freq_range, mixer_pn, synth_pn, bb_pn, lo_leak_pn):
+        if(len(bsn) > 16):
+            print("BSN is too long")
+            return
+        
+        if(len(mcu_pn) > 16):
+            print("mcu_pn is too long")
+            return
+
+        if(len(freq_range) > 16):
+            print("freq_range is too long")
+            return
+
+        if(len(mixer_pn) > 16):
+            print("mixer_pn is too long")
+            return
+        
+        if(len(synth_pn) > 16):
+            print("synth_pn is too long")
+            return
+        
+        if(len(bb_pn) > 16):
+            print("bb_pn is too long")
+            return
+
+        if(len(lo_leak_pn) > 16):
+            print("lo_leak_pn is too long")
+            return
+
+        print("All entries are less than 16 bytes length")
+        final_string = bsn.ljust(16, "\x00") \
+                    + mcu_pn.ljust(16, "\x00") \
+                    + freq_range.ljust(16, "\x00") \
+                    + mixer_pn.ljust(16, "\x00") \
+                    + synth_pn.ljust(16, "\x00") \
+                    + bb_pn.ljust(16, "\x00") \
+                    + lo_leak_pn.ljust(16, "\x00")
+
+        for i in range(7):
+            print(final_string[i*16:i*16+16])
+
+        final_bytes = bytearray(final_string, "utf8")
+
+        cmd_array = [0x00] * _CMD.CMD_LEN
+        cmd_array[0] = (_CMD.PROG_EEPROM << 1) | _CMD.W
+        cmd_array[1] = 112
+        self._write(cmd_array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_WRITE_GOOD != _RET_VAL.MASK_WRITE_GOOD):
+            print("Failed to understand command, RET_VAL is not WRITE_GOOD")
+            return None
+        if(ret[1] != len(final_bytes)):
+            print("Device did not return the expected number of bytes for the next step")
+            return None
+
+        self._write(final_bytes)
+        # time.sleep(10)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_WRITE_GOOD != _RET_VAL.MASK_WRITE_GOOD):
+            print("Something went wrong during writing to the EEPROM")
+            return None
+
+
+    
