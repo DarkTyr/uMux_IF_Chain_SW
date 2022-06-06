@@ -7,7 +7,7 @@ that contains a tyr command processor.
 '''
 # System level imports
 import serial
-import time
+# import time
 
 # local imports
 from uMux_IF_Chain.devices import tmp275
@@ -385,7 +385,7 @@ class Base_Board_Rev3:
         for i in range(len(ret_array)):
             ret_array[i] = int(data2[i], base=16)
 
-        return ret_array[2]
+        return ret_array[0]
 
     def enable_periodic_checking(self):
         self._write("*FW_START_PER")
