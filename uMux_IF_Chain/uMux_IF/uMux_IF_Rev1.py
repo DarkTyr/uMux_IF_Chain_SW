@@ -76,10 +76,10 @@ class UMux_IF_Rev1:
         self._bb = base_board
         self._dac_nbits = 14
         self.debug = 1
+        self.firmware_id = []
         self.unique_id = []
         self.board_serial_number = []
         self.eeprom = []
-        # self._delay = 0.005
         self._delay = 0.0
         self._delay_i2c = 0.0
         self._tmp = tmp275.TMP275(0x48)
