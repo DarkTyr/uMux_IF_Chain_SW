@@ -212,6 +212,7 @@ if (__name__ == '__main__'):
             for z in frequnecy_list_MHz:
                 x.test_results.append(test_synth_set_Frequency_MHz(x, z))
             x.test_results.append(test_synth_reset(x))
+            x.test_results.append(test_verify_thermal_limit(x))
         read_all_information()
     
     if(args.skip_running == False):
