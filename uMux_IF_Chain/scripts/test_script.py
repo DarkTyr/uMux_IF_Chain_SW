@@ -122,6 +122,13 @@ def test_synth_reset(if_board):
     else:
         return ("FAIL - test_synth_reset")    
 
+def test_verify_thermal_limit(if_board):
+    (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
+    if((synth_temp_F == 100.0) & (mcu_temp_F == 100.0)):
+        return ("PASS - test_verify_thermal_limit - 100.0 C")
+    else:
+        return ("FAIL - test_verify_thermal_limit - synth_temp_F : {}  mcu_temp_F : {}".format(synth_temp_F, mcu_temp_F))
+
 if (__name__ == '__main__'):
     parser = argparse.ArgumentParser()
     parser.add_argument("com_port", help="Com Port to communicate with Base Board")
