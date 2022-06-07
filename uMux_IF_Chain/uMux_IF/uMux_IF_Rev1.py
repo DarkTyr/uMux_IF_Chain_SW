@@ -103,6 +103,16 @@ class UMux_IF_Rev1:
                   .format(self._cs, nBytes_read, data, ret))
         return ret
 
+    def mcu_reset(self) -> None:
+        data = [0x00] * _CMD.CMD_LEN
+        data[0] = (_CMD.FW_SOFT_RST << 1) | _CMD.W
+        data[1] = 0x55
+        data[2] = 0x44
+        data[3] = 0x33
+        data[4] = 0x22
+        self._write(data)
+        return None
+
     def base_band_loop_back_enable(self) -> None:
         data = [0x00] * _CMD.CMD_LEN
         data[0] = (_CMD.FW_BB_LB << 1) | _CMD.W
