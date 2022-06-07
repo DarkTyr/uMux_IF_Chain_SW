@@ -151,13 +151,19 @@ if (__name__ == '__main__'):
         # Not a fan of adding an array to each class, but here we are
         ifb[i].test_results = []
 
-    def read_all_temps():
-        print("___ read_all_temps ___")
+    def read_all_information():
+        print("___ read_all_information ___")
         for i in range(dev_stack.bit_length()):
+            print(bytes(ifb[i].read_FWID()))    # saved inside the class
+            print(bytes(ifb[i].read_CID()))     # saved inside the class
+            print(bytes(ifb[i].read_BSN()))     # saved inside the class
+            print(bytes(ifb[i].read_eeprom()))  # saved inside the class
             (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
-            print("{} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C))
+            text = "CS = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(ifb[0]._cs, synth_temp_C, mcu_temp_C)
+            print(text)
+            ifb[i].test_results.append(text)
 
-    read_all_temps()
+    read_all_information()
 
     def run_test_suite():
         for x in ifb:
@@ -172,7 +178,7 @@ if (__name__ == '__main__'):
                 x.test_results.append(test_nulling_dn_set(x, z))
             for z in frequnecy_list_MHz:
                 x.test_results.append(test_synth_set_Frequency_MHz(x, z))
-        read_all_temps()
+        read_all_information()
     
     if(args.skip_running == False):
         run_test_suite()
