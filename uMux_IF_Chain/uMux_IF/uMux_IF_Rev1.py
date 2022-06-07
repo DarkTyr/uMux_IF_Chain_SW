@@ -39,7 +39,7 @@ class _CMD:
     NULLING_UP      = 0x31
     NULLING_DN      = 0x32
     SYNTH_SR        = 0x40
-    SYNTH_SOFT_RST  = 0x41
+    SYNTH_RST       = 0x41
     SYNTH_INIT      = 0x42
     SYNTH_WRITE     = 0x43
     I2C_IF          = 0x50
@@ -254,6 +254,18 @@ class UMux_IF_Rev1:
         else:
             print("Write Failed")
             return None
+
+    def synth_reset(self):
+        data = [0x00] * _CMD.CMD_LEN
+        data[0] = (_CMD.SYNTH_RST << 1) | _CMD.W
+        self._write(data)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_WRITE_GOOD):
+            return True
+        else:
+            print("Write Failed")
+            return False
 
     def synth_get_Frequency_MHz(self) -> float:
         real_freq_MHz = self._lmx.get_Frequency_MHz()
