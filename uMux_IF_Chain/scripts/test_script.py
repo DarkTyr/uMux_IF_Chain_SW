@@ -129,6 +129,20 @@ def test_verify_thermal_limit(if_board):
     else:
         return ("FAIL - test_verify_thermal_limit - synth_temp_F : {}  mcu_temp_F : {}".format(synth_temp_F, mcu_temp_F))
 
+def test_mcu_reset(if_board):
+    if_board._write_temp_threshold(110)
+    (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
+    if((synth_temp_F == 110.0) & (mcu_temp_F == 110.0)):
+        if_board.mcu_reset()
+        time.sleep(0.500)
+        (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
+        if((synth_temp_F == 100.0) & (mcu_temp_F == 100.0)):
+            return ("PASS - test_mcu_reset")
+        else:
+            return ("FAIL - test_mcu_reset")
+    else:
+        return ("N/R - test_mcu_reset - _write_temp_threshold didn't take new value")
+
 if (__name__ == '__main__'):
     parser = argparse.ArgumentParser()
     parser.add_argument("com_port", help="Com Port to communicate with Base Board")
@@ -213,6 +227,7 @@ if (__name__ == '__main__'):
                 x.test_results.append(test_synth_set_Frequency_MHz(x, z))
             x.test_results.append(test_synth_reset(x))
             x.test_results.append(test_verify_thermal_limit(x))
+            x.test_results.append(test_mcu_reset(x))
         read_all_information()
     
     if(args.skip_running == False):
