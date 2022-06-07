@@ -13,8 +13,7 @@ import time
 #tqdm provides a utility for a progress bar
 import tqdm
 
-# CSV is used to process the initialization text file
-import csv
+import binascii
 
 # the main classes here
 from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
@@ -165,14 +164,26 @@ if (__name__ == '__main__'):
     def read_all_information():
         print("___ read_all_information ___")
         for i in range(dev_stack.bit_length()):
-            print(bytes(ifb[i].read_FWID()))    # saved inside the class
-            print(bytes(ifb[i].read_CID()))     # saved inside the class
-            print(bytes(ifb[i].read_BSN()))     # saved inside the class
-            print(bytes(ifb[i].read_eeprom()))  # saved inside the class
-            ifb[i].test_results.append('firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8"))
-            ifb[i].test_results.append('unique_id : ' + bytes(ifb[i].unique_id).decode("utf8"))
-            ifb[i].test_results.append('board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8"))
-            ifb[i].test_results.append('eeprom : ' + bytes(ifb[i].eeprom).decode("utf8"))
+            ifb[i].read_FWID()
+            text = 'firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8")
+            ifb[i].test_results.append(text)
+            print(text)    # saved inside the class
+
+            ifb[i].read_CID()
+            text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
+            ifb[i].test_results.append(text)
+            print('unique_id in hex: ' + text)
+
+            ifb[i].read_BSN()
+            text = 'board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8")
+            ifb[i].test_results.append(text)
+            print(text)
+
+            ifb[i].read_eeprom()
+            text = 'eeprom : ' + bytes(ifb[i].eeprom).decode("utf8")
+            ifb[i].test_results.append(text)
+            print(text)  # saved inside the class
+
             (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
             text = "CS = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(ifb[0]._cs, synth_temp_C, mcu_temp_C)
             print(text)
