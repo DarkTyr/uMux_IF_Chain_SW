@@ -417,6 +417,20 @@ class UMux_IF_Rev1:
 
         return failed_compares
 
+    def read_FWID(self):
+        cmd_array = [0x00] * _CMD.CMD_LEN
+        cmd_array[0] = (_CMD.FW_ID << 1) | _CMD.R
+        self._write(cmd_array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD != _RET_VAL.MASK_READ_GOOD):
+            print("Failed to understand command, RET_VAL is not READ_GOOD")
+            return None
+        fwid_size = ret[1]   # Firmware returns the CID size (96 Bits, 12 bytes, 3 words)
+        ret = self._read(fwid_size)
+        self.firmware_id = ret
+        return ret
+
     def read_CID(self):
         cmd_array = [0x00] * _CMD.CMD_LEN
         cmd_array[0] = (_CMD.FW_CID << 1) | _CMD.R
