@@ -42,6 +42,7 @@ class _CMD:
     SYNTH_RST       = 0x41
     SYNTH_INIT      = 0x42
     SYNTH_WRITE     = 0x43
+    SYNTH_REG_DUMP  = 0x44
     I2C_IF          = 0x50
     SPI_LOOPBACK    = 0x51
     PROG_EEPROM     = 0x60
@@ -297,6 +298,19 @@ class UMux_IF_Rev1:
 
     def synth_powerdown_get(self) -> bool:
         return self._lmx.powerdown_get()
+
+    def synth_reg_dump(self):
+        cmd_array = [0x00] * _CMD.CMD_LEN
+        cmd_array[0] = (_CMD.SYNTH_REG_DUMP << 1) | _CMD.R
+        self._write(cmd_array)
+        time.sleep(self._delay)
+        ret = self._read(_RET_VAL.RET_LEN)
+        if(ret[0] & _RET_VAL.MASK_READ_GOOD != _RET_VAL.MASK_READ_GOOD):
+            print("Failed to understand command, RET_VAL is not READ_GOOD")
+            return None
+        reg_dump_size = ret[1]
+        ret = self._read(reg_dump_size)
+        return ret
 
     def _synth_write_int(self, data: int) -> None:
         array = [0x0] * _CMD.CMD_LEN
