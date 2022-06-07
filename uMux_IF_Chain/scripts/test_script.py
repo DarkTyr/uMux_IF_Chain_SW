@@ -158,6 +158,10 @@ if (__name__ == '__main__'):
             print(bytes(ifb[i].read_CID()))     # saved inside the class
             print(bytes(ifb[i].read_BSN()))     # saved inside the class
             print(bytes(ifb[i].read_eeprom()))  # saved inside the class
+            ifb[i].test_results.append('firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8"))
+            ifb[i].test_results.append('unique_id : ' + bytes(ifb[i].unique_id).decode("utf8"))
+            ifb[i].test_results.append('board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8"))
+            ifb[i].test_results.append('eeprom : ' + bytes(ifb[i].eeprom).decode("utf8"))
             (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
             text = "CS = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(ifb[0]._cs, synth_temp_C, mcu_temp_C)
             print(text)
