@@ -112,6 +112,17 @@ def test_synth_powerup_bit(if_board):
     else:
         return ("FAIL - test_synth_powerdown_bit")
 
+def test_synth_reset(if_board):
+    cur_lock_state = if_board.synth_lock_status()
+    if(cur_lock_state == False):
+        return ("N/R - test_synth_reset - Unable to run with synth not initialized and locked")
+    if_board.synth_reset()
+    cur_lock_state = if_board.synth_lock_status()
+    if(cur_lock_state == False):
+        return ("PASS - test_synth_reset")
+    else:
+        return ("FAIL - test_synth_reset")    
+
 if (__name__ == '__main__'):
     parser = argparse.ArgumentParser()
     parser.add_argument("com_port", help="Com Port to communicate with Base Board")
@@ -182,6 +193,7 @@ if (__name__ == '__main__'):
                 x.test_results.append(test_nulling_dn_set(x, z))
             for z in frequnecy_list_MHz:
                 x.test_results.append(test_synth_set_Frequency_MHz(x, z))
+            x.test_results.append(test_synth_reset(x))
         read_all_information()
     
     if(args.skip_running == False):
