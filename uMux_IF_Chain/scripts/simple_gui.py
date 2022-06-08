@@ -37,7 +37,7 @@ if (__name__ == '__main__'):
     args = parser.parse_args()
 
     def init_scales():
-        if(args.test):
+        if(args.test == True):
             # Initial value for Frequency
             con[0][IDX_SCALE].set(5500)
             # Initial values for Lo Nulling set to half scale
@@ -61,10 +61,10 @@ if (__name__ == '__main__'):
         if(args.verbosity > 0):
             print("Command 0 : Slide Value = {}".format(slide_value))
 
-        if(args.test==None):
+        if(args.test == False):
             ifb[dropdown_var.get()].synth_set_Frequency_MHz(int(slide_value))
 
-        if(args.test):
+        if(args.test == True):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
@@ -72,11 +72,11 @@ if (__name__ == '__main__'):
         if(args.verbosity > 0):
             print("Command 1 : Slide Value = {}".format(slide_value))
 
-        if(args.test==None):
+        if(args.test == False):
             ifb[dropdown_var.get()].nulling_up_set(int(slide_value),
                                                    int(con[2][IDX_SCALE].get()))
 
-        if(args.test):
+        if(args.test == True):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
@@ -84,11 +84,11 @@ if (__name__ == '__main__'):
         if(args.verbosity > 0):
             print("Command 2 : Slide Value = {}".format(slide_value))
 
-        if(args.test==None):
+        if(args.test == False):
             ifb[dropdown_var.get()].nulling_up_set(int(con[1][IDX_SCALE].get()),
                                                    int(slide_value))
 
-        if(args.test):
+        if(args.test == True):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
@@ -96,11 +96,11 @@ if (__name__ == '__main__'):
         if(args.verbosity > 0):
             print("Command 3 : Slide Value = {}".format(slide_value))
 
-        if(args.test==None):
+        if(args.test == False):
             ifb[dropdown_var.get()].nulling_dn_set(int(slide_value),
                                                    int(con[4][IDX_SCALE].get()))
 
-        if(args.test):
+        if(args.test == True):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
@@ -108,11 +108,11 @@ if (__name__ == '__main__'):
         if(args.verbosity > 0):
             print("Command 4 : Slide Value = {}".format(slide_value))
 
-        if(args.test==None):
+        if(args.test == False):
             ifb[dropdown_var.get()].nulling_dn_set(int(con[3][IDX_SCALE].get()),
                                                    int(slide_value))
 
-        if(args.test):
+        if(args.test == True):
             time.sleep(CMD_DELAY)
 
     # Used to change focus with the tab key
@@ -153,7 +153,7 @@ if (__name__ == '__main__'):
             print("onDropDownChange({})".format(value))
         init_scales()
 
-    if(args.test == None):
+    if(args.test == False):
         # Create base board interface class and set debug message level
         bb = base_board_rev3.Base_Board_Rev3(args.com_port)
         bb.get_devce_info()
@@ -180,6 +180,8 @@ if (__name__ == '__main__'):
                 ifb[i].debug = 2
     else:
         n_ifb = 4
+        ifb = [0x00] * n_ifb
+
     root = tk.Tk()
 
     ifb_opts = [*range(0, n_ifb)]
