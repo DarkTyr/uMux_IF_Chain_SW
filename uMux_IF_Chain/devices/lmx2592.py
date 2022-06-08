@@ -106,7 +106,7 @@ class LMX2592:
             print("\t  N = {}".format(N))
             
         temp = self._spi_read(_REG.PLL_VCO_2X)
-        if(temp[0] & 0x1):
+        if(temp[1] & 0x1):
             vco_2x = True
         else:
             vco_2x = False
@@ -152,6 +152,15 @@ class LMX2592:
         data[0] = _REG.PLL_N
         data[1] = ((self._pll.N << _REG_38.PLL_N_SHIFT) >> 8 ) & 0xFF
         data[2] = ((self._pll.N << _REG_38.PLL_N_SHIFT) >> 0 ) & 0xFF       
+        self._spi_write(data)
+
+        data[0] = _REG.PLL_VCO_2X
+        data[1] = 0x00
+        data[2] = 0x34
+        if(self._pll.vco_x2):
+            data[2] =  data[2] | 0x01
+        else:
+            data[2] =  (data[2] & (~0x01)) & 0xFF
         self._spi_write(data)
 
         self._R0.cur = self._spi_read(self._R0.REG_NUM)
