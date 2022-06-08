@@ -7,9 +7,8 @@ that contains a tyr command processor.
 '''
 # System level imports
 import time
-from typing import final
 
-from numpy import array
+import numpy as np
 
 # local imports
 # from devices import tmp275
@@ -299,7 +298,7 @@ class UMux_IF_Rev1:
     def synth_powerdown_get(self) -> bool:
         return self._lmx.powerdown_get()
 
-    def synth_reg_dump(self):
+    def synth_reg_dump(self, print_to_console_only = False):
         cmd_array = [0x00] * _CMD.CMD_LEN
         cmd_array[0] = (_CMD.SYNTH_REG_DUMP << 1) | _CMD.R
         self._write(cmd_array)
@@ -310,7 +309,14 @@ class UMux_IF_Rev1:
             return None
         reg_dump_size = ret[1]
         ret = self._read(reg_dump_size)
-        return ret
+
+        ret = np.reshape(ret, (-1, 3))
+        if(print_to_console_only):
+            for i in ret:
+                print("REG : {} = 0x{:02X}{:02X}".format(i[0], i[1], i[2]))
+            return
+        else:
+            return ret
 
     def _synth_write_int(self, data: int) -> None:
         array = [0x0] * _CMD.CMD_LEN
