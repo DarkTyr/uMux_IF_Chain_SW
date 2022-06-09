@@ -37,7 +37,7 @@ class _REG:
 class _PLL_Config:
     def __init__(self, F_ref_MHz: float) -> None:
         self.N = 9
-        self.Den = 1000
+        self.Den = 2000
         self.Num = 0
         self.F_REF_MHZ = F_ref_MHz
         self.ref_x2 = False
@@ -56,7 +56,7 @@ class _PLL_Config:
         self.N, remain = divmod(Freq_MHz * 1e6, pfd_MHz*1e6 * (2 + 2 * self.vco_x2))
         self.N = int(self.N)    # Odd issue where divmod can return a float type
         self.Num = int(remain/(pfd_MHz*1e6 * (2 + 2*self.vco_x2))*self.Den)
-        F_real_MHz = float(pfd_MHz*1e6) * (self.N + (self.Num/self.Den))*(2+2*self.vco_x2)/1e6
+        F_real_MHz = (float(pfd_MHz*1e6) * (self.N + (self.Num/self.Den))*(2+2*self.vco_x2))/1e6
         self.Freq = round(F_real_MHz, 6)
         return float(self.Freq)
 
