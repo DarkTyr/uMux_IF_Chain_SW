@@ -207,7 +207,7 @@ if (__name__ == '__main__'):
             print(text)  # saved inside the class
 
             (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
-            text = "CS = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(ifb[0]._cs, synth_temp_C, mcu_temp_C)
+            text = "Board = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C)
             print(text)
             ifb[i].test_results.append(text)
 
