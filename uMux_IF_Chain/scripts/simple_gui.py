@@ -1,4 +1,5 @@
 
+from sre_parse import State
 import tkinter as tk
 import time
 
@@ -36,7 +37,7 @@ if (__name__ == '__main__'):
     parser.add_argument("-t", "--test", help="Allows running without hardware", action="store_true")
     args = parser.parse_args()
 
-    def init_scales():
+    def read_scales():
         if(args.test == True):
             # Initial value for Frequency
             con[0][IDX_SCALE].set(5500)
@@ -55,11 +56,71 @@ if (__name__ == '__main__'):
             con[3][IDX_SCALE].set(dac0)
             con[4][IDX_SCALE].set(dac1)
 
+    # command that can be called to update lock status of LO
+    def readLockStatus():
+        status = ifb[dropdown_var.get()].synth_lock_status()
+        if(status == True):
+            butLock.configure(text="LO Lock\nYes", bg="green")
+        else:
+            butLock.configure(text="LO Lock\nNo", bg="red")
+
+    # command to shutdown LO
+    def toggleShutDownLO():
+        state = readShutDownState()
+        if(state == True):
+            ifb[dropdown_var.get()].synth_powerup_bit()
+        else:
+            ifb[dropdown_var.get()].synth_powerdown_bit()
+        readShutDownState()
+        readLockStatus()
+    
+    def readShutDownState():
+        state = ifb[dropdown_var.get()].synth_powerdown_get()
+        if(state == True):
+            butShutDown.configure(text="Synth\nSHDN", bg="red")
+        else:
+            butShutDown.configure(text="Synth\nEnabled", bg="green")
+        return state
+
+    # commands to toggle base band loop back
+    def toggleBBLoopBack():
+        state = readBBLoopBack()
+        if(state == True):
+            ifb[dropdown_var.get()].base_band_loop_back_disable()
+        else:
+            ifb[dropdown_var.get()].base_band_loop_back_enable()
+        readBBLoopBack()
+
+    def readBBLoopBack():
+        state = ifb[dropdown_var.get()].base_band_loop_back_get()
+        if(state == True):
+            butBBloop.configure(text="BB Loop\nEnabled", bg="green")
+        else:
+            butBBloop.configure(text="BB Loop\nDisabled", bg="red")
+        return state
+
+    # command to read temperatures
+    def readTemperatures():
+        (synth_temp_C, mcu_temp_C) = ifb[dropdown_var.get()].read_temperatures_C()
+        print("Board= {}, synth_temp= {:.3f} C  mcu_temp = {:.3f} C".format(dropdown_var.get(), synth_temp_C, mcu_temp_C))
+
+    # command that is called when the synth_init button is pressed
+    def synthInit():
+        if(args.verbosity > 0):
+            print("synthInit : Pressed")
+
+        # Call the init for the selected card
+        ifb[dropdown_var.get()].synth_init()
+
+        # Since this does change the frequency value read_scales is called
+        read_scales()
+        readLockStatus()
+        readShutDownState()
 
     # command that is called when the Frequency scale is changed
-    def command_0(slide_value):
+    def freqChange(slide_value):
         if(args.verbosity > 0):
-            print("Command 0 : Slide Value = {}".format(slide_value))
+            print("freqChange : Slide Value = {}".format(slide_value))
 
         if(args.test == False):
             ifb[dropdown_var.get()].synth_set_Frequency_MHz(int(slide_value))
@@ -68,9 +129,9 @@ if (__name__ == '__main__'):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
-    def command_1(slide_value):
+    def loNullUpI(slide_value):
         if(args.verbosity > 0):
-            print("Command 1 : Slide Value = {}".format(slide_value))
+            print("loNullUpI : Slide Value = {}".format(slide_value))
 
         if(args.test == False):
             ifb[dropdown_var.get()].nulling_up_set(int(slide_value),
@@ -80,9 +141,9 @@ if (__name__ == '__main__'):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
-    def command_2(slide_value):
+    def loNullUpQ(slide_value):
         if(args.verbosity > 0):
-            print("Command 2 : Slide Value = {}".format(slide_value))
+            print("loNullUpQ : Slide Value = {}".format(slide_value))
 
         if(args.test == False):
             ifb[dropdown_var.get()].nulling_up_set(int(con[1][IDX_SCALE].get()),
@@ -92,9 +153,9 @@ if (__name__ == '__main__'):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
-    def command_3(slide_value):
+    def loNullDnI(slide_value):
         if(args.verbosity > 0):
-            print("Command 3 : Slide Value = {}".format(slide_value))
+            print("loNullDnI : Slide Value = {}".format(slide_value))
 
         if(args.test == False):
             ifb[dropdown_var.get()].nulling_dn_set(int(slide_value),
@@ -104,9 +165,9 @@ if (__name__ == '__main__'):
             time.sleep(CMD_DELAY)
 
     # command that is called when scale is changed for Lo Nulling
-    def command_4(slide_value):
+    def loNullDnQ(slide_value):
         if(args.verbosity > 0):
-            print("Command 4 : Slide Value = {}".format(slide_value))
+            print("loNullDnQ : Slide Value = {}".format(slide_value))
 
         if(args.test == False):
             ifb[dropdown_var.get()].nulling_dn_set(int(con[3][IDX_SCALE].get()),
@@ -151,7 +212,10 @@ if (__name__ == '__main__'):
     def onDropDownChange(value):
         if(args.verbosity):
             print("onDropDownChange({})".format(value))
-        init_scales()
+        read_scales()
+        readLockStatus()
+        readShutDownState()
+        readBBLoopBack()
 
     if(args.test == False):
         # Create base board interface class and set debug message level
@@ -186,6 +250,7 @@ if (__name__ == '__main__'):
 
     ifb_opts = [*range(0, n_ifb)]
 
+    # Instantiate the dropdown option menu for card selection
     dropdown_var = tk.IntVar()
     dropdown_var.set(0)
     dropdown = tk.OptionMenu(root,
@@ -195,14 +260,34 @@ if (__name__ == '__main__'):
 
     dropdown.grid(row = 0, column = 0)
 
+    # Instantiate button to initialize synthesizers
+    butInit = tk.Button(root, text="Synth Init", command = synthInit)
+    butInit.grid(row = 0, column = 1)
+
+    # Instantiate button to read the lock status
+    butLock = tk.Button(root, text="Lock Status\n", command=readLockStatus)
+    butLock.grid(row = 0, column = 2)
+
+    # Instantiate button to read the lock status
+    butShutDown = tk.Button(root, text="Synth\n", command=toggleShutDownLO)
+    butShutDown.grid(row = 0, column = 3)
+
+    # Instantiate button to read the lock status
+    butBBloop = tk.Button(root, text="BB Loop\n", command=toggleBBLoopBack)
+    butBBloop.grid(row = 0, column = 4)
+
+    # Instantiate button to read temperatures
+    butReadTemp = tk.Button(root, text="Read\nTemps\n", command=readTemperatures)
+    butReadTemp.grid(row = 0, column = 5)
+
     # Main array holding pointers to objects used to make the GUI
     con = [
         # name, StringVar, label, slider, command, from_, to
-        ["LO\nFrequency", 0x00, 0x00, 0x00, command_0, 4000,  8000],
-        ["Up\nLoNull\nI", 0x00, 0x00, 0x00, command_1,    0, 16383],
-        ["Up\nLoNull\nQ", 0x00, 0x00, 0x00, command_2,    0, 16383],
-        ["Dn\nLoNull\nI", 0x00, 0x00, 0x00, command_3,    0, 16383],
-        ["Dn\nLoNull\nQ", 0x00, 0x00, 0x00, command_4,    0, 16383],
+        ["LO\nFrequency", 0x00, 0x00, 0x00, freqChange, 4000,  8000],
+        ["Up\nLoNull\nI", 0x00, 0x00, 0x00, loNullUpI,    0, 16383],
+        ["Up\nLoNull\nQ", 0x00, 0x00, 0x00, loNullUpQ,    0, 16383],
+        ["Dn\nLoNull\nI", 0x00, 0x00, 0x00, loNullDnI,    0, 16383],
+        ["Dn\nLoNull\nQ", 0x00, 0x00, 0x00, loNullDnQ,    0, 16383],
         ]
 
     # arbitray size
@@ -233,6 +318,11 @@ if (__name__ == '__main__'):
 
     # Set scales to default values, could maybe read them from the hardware
     # at this point
-    init_scales()
+    read_scales()
+    readLockStatus()
+    readShutDownState()
+    readBBLoopBack()
+
+    # Start Main loop
     root.mainloop()
 
