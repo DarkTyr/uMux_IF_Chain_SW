@@ -112,6 +112,9 @@ if (__name__ == '__main__'):
         # Call the init for the selected card
         ifb[dropdown_var.get()].synth_init()
 
+        # Delay so the Synthesizer can run its config routine
+        time.sleep(0.1)
+
         # Since this does change the frequency value read_scales is called
         read_scales()
         readLockStatus()
