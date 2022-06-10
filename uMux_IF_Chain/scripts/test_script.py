@@ -186,6 +186,11 @@ if (__name__ == '__main__'):
     def read_all_information():
         print("___ read_all_information ___")
         for i in range(dev_stack.bit_length()):
+            (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
+            text = "Board = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C)
+            print(text)
+            ifb[i].test_results.append(text)
+
             ifb[i].read_FWID()
             text = 'firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8")
             ifb[i].test_results.append(text)
@@ -204,12 +209,7 @@ if (__name__ == '__main__'):
             ifb[i].read_eeprom()
             text = 'eeprom : ' + bytes(ifb[i].eeprom).decode("utf8")
             ifb[i].test_results.append(text)
-            print(text)  # saved inside the class
-
-            (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
-            text = "Board = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C)
-            print(text)
-            ifb[i].test_results.append(text)
+            print(text)  # saved inside the class      
 
     read_all_information()
 
