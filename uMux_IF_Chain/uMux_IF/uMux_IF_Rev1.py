@@ -501,7 +501,7 @@ class UMux_IF_Rev1:
         self.board_serial_number = ret
         return ret
 
-    def read_eeprom(self):
+    def read_eeprom(self, print_human_readable=False):
         cmd_array = [0x00] * _CMD.CMD_LEN
         cmd_array[0] = (_CMD.FW_EEPROM << 1) | _CMD.R
         self._write(cmd_array)
@@ -512,8 +512,17 @@ class UMux_IF_Rev1:
             return None
         eeprom_size = ret[1]
         ret = self._read(eeprom_size)
-        self.eeprom = ret
-        return ret
+        data_len = len(ret)
+        nfields = int(data_len/16)
+        text_array = [""] * nfields
+        for idx in range(nfields):
+            text_array[idx] = bytes(ret[0+16*idx : 16 + 16*idx]).decode("utf8")
+        self.eeprom = text_array
+        if(print_human_readable):
+            print(text_array[0])
+            for idx in range(nfields - 1):
+                print("  " + text_array[idx + 1])
+        return text_array
 
     def _write_eeprom(self, bsn, mcu_pn, freq_range, mixer_pn, synth_pn, bb_pn, lo_leak_pn):
         if(len(bsn) > 16):
