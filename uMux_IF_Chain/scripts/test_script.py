@@ -207,9 +207,10 @@ if (__name__ == '__main__'):
             print(text)
 
             ifb[i].read_eeprom()
-            text = 'eeprom : ' + bytes(ifb[i].eeprom).decode("utf8")
-            ifb[i].test_results.append(text)
-            print(text)  # saved inside the class      
+            for x in ifb[i].eeprom:
+                text = 'eeprom : ' + x
+                ifb[i].test_results.append(text)
+                print(text)  # saved inside the class      
 
     read_all_information()
 
@@ -232,5 +233,10 @@ if (__name__ == '__main__'):
         read_all_information()
     
     if(args.skip_running == False):
+        print("-"*60)
+        print("Running Test Suite")
+        print("\n")
         run_test_suite()
+        print("-"*60)
+        print("Finished Test Suite")
     
