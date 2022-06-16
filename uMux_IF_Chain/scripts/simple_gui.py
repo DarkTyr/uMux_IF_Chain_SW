@@ -72,6 +72,7 @@ if (__name__ == '__main__'):
         else:
             ifb[dropdown_var.get()].synth_powerdown_bit()
         readShutDownState()
+        time.sleep(0.05) # Let the PLL lock
         readLockStatus()
     
     def readShutDownState():
@@ -113,7 +114,7 @@ if (__name__ == '__main__'):
         ifb[dropdown_var.get()].synth_init()
 
         # Delay so the Synthesizer can run its config routine
-        time.sleep(0.1)
+        time.sleep(0.05)
 
         # Since this does change the frequency value read_scales is called
         read_scales()
