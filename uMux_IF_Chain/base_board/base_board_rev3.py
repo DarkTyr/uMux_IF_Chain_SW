@@ -15,7 +15,7 @@ from uMux_IF_Chain.devices import tmp275
 class Base_Board_Rev3:
     def __init__(self, port=''):
         if(port == ''):
-            raise IOError("There is no default serial com port, user must tell Tyr_Serial_IF what port to use")
+            raise IOError("There is no default serial com port, user must tell Base_Board_Rev3 what port to use")
         self.port = port    # Serial port we are supposed to communicate with
         self.com = serial.Serial(port=self.port, timeout=6, write_timeout=6) # PySerial object
         self.ret_int = 0         # Number of bytes sent to the VCP
@@ -104,6 +104,17 @@ class Base_Board_Rev3:
             print('\t' + self.fw_serial_number)
             print('\t' + self.fw_version)
             print('\t' + self.fw_timestamp)
+
+    def clk_reference(self) -> str:
+        str_to_write = 'I2C:SI_LOCK?' # Assemble final string to be sent
+        self._write(str_to_write)
+
+        # Read back the return value from the interface
+        self._read()
+
+        if(self.auto_print > 0):
+            print('\t' + self.ret_str)
+        return self.ret_str
 
     def i2c_write(self, i2c_addr: int, data_array: list):
         # Check the datatype of the array and range of each element
@@ -386,6 +397,21 @@ class Base_Board_Rev3:
             ret_array[i] = int(data2[i], base=16)
 
         return ret_array[0]
+
+    def spi_hard_reset(self, chip_select: int):
+        cs_str = hex(chip_select)[2:].rjust(2,'0') # Convert int number to valid hex
+
+        # Construct the main string to write to the VCP device
+        str_to_write = 'SPI:HARD_RST:' + cs_str # Assemble final string to be sent
+        self._write(str_to_write)
+
+        # Read back the return value from the interface
+        self._read()
+        if(self.ret_str != "OKAY"):
+            print("\tERROR: SPI Hard Reset Failed : " + self.ret_str)
+            return
+        elif(self.auto_print > 0):
+            print('\t' + self.ret_str)
 
     def enable_periodic_checking(self):
         self._write("*FW_START_PER")
