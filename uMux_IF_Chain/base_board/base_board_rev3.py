@@ -81,7 +81,7 @@ class Base_Board_Rev3:
         if(self.auto_print > 1):
                 print('\t' + self.ret_str)
 
-    def get_devce_info(self):
+    def get_device_info(self):
         self._write("*IDN?")
         self._read()
         self.fw_identity = self.ret_str

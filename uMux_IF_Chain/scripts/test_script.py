@@ -214,6 +214,7 @@ class uMux_IF_Unit_Test:
 
     def read_all_information(self, bb, ifb):
         print("___ read_all_information ___")
+        bb.get_device_info()
         for i in range(len(ifb)):
             (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
             text = "Board = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C)
