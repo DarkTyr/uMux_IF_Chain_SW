@@ -216,6 +216,11 @@ class uMux_IF_Unit_Test:
         print("___ read_all_information ___")
         print("__Base Board Information__")
         bb.get_device_info()
+        print(bb.fw_identity)
+        print('\t' + bb.fw_description)
+        print('\t' + bb.fw_serial_number)
+        print('\t' + bb.fw_version)
+        print('\t' + bb.fw_timestamp)
         print("__IF Board Information__")
         for i in range(len(ifb)):
             (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
