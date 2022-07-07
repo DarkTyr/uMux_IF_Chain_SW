@@ -211,9 +211,9 @@ class uMux_IF_Unit_Test:
             + "\t               : {} kB/s".format(total_data_MB/total_time_s*1024)
             )
 
-
     def read_all_information(self, bb, ifb):
         print("___ read_all_information ___")
+
         print("__Base Board Information__")
         bb.get_device_info()
         print(bb.fw_identity)
@@ -221,6 +221,7 @@ class uMux_IF_Unit_Test:
         print('\t' + bb.fw_serial_number)
         print('\t' + bb.fw_version)
         print('\t' + bb.fw_timestamp)
+
         print("__IF Board Information__")
         for i in range(len(ifb)):
             (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
@@ -276,7 +277,7 @@ class uMux_IF_Unit_Test:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("com_port", help="Com Port to communicate with Base Board")
-    parser.add_argument("-n", "--num_itter", help="Set the number of itterations to run through test suite", default=1)
+    parser.add_argument("-n", "--num_itter", help="Set the number of itterations to run through test suite (not used yet)", default=1)
     parser.add_argument("-s", "--skip_running", help="Skip automatically starting tests", action="store_true", default=0)
     parser.add_argument("-i", "--iPython", help="Drops into an iPython interface", action="store_true", default=0)
     parser.add_argument("-v", "--verbosity", help="Set terminal debugging verbosity", action="count", default=0)
