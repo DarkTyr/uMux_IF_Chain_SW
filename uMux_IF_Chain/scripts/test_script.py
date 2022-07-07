@@ -280,7 +280,7 @@ def main():
     
     # Create base board interface class and set debug message level
     bb = base_board_rev3.Base_Board_Rev3(args.com_port)
-    bb.get_devce_info()
+    bb.get_device_info()
     if(args.verbosity == 0):
         bb.auto_print = 0
     elif(args.verbosity == 1):
