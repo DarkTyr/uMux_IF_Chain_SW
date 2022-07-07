@@ -144,11 +144,11 @@ def test_mcu_reset(if_board):
     else:
         return ("N/R - test_mcu_reset - _write_temp_threshold didn't take new value")
 
-def test_mcu_hard_reset(if_board):
+def test_mcu_hard_reset(base_board, if_board):
     if_board._write_temp_threshold(110)
     (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
     if((synth_temp_F == 110.0) & (mcu_temp_F == 110.0)):
-        bb.spi_hard_reset(if_board._cs)
+        base_board.spi_hard_reset(if_board._cs)
         time.sleep(0.500)
         (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
         if((synth_temp_F == 100.0) & (mcu_temp_F == 100.0)):
@@ -158,15 +158,121 @@ def test_mcu_hard_reset(if_board):
     else:
         return ("N/R - test_mcu_hard_reset - _write_temp_threshold didn't take new value")
 
-if (__name__ == '__main__'):
+def synth_config_from_file(ifb, TICS_FILE = 'HexRegisterValues.txt'):
+    print("Configuring LMX2592 from file: {}".format(TICS_FILE))
+    with open(TICS_FILE) as csvfile:
+        import csv
+        data = list(csv.reader(csvfile, delimiter='\t'))
+
+    for reg in data:
+        print(reg[0])
+        reg_val = int(reg[1], base=16)
+        for i in ifb:
+            i._synth_write_int(reg_val)
+    for i in ifb:
+        i._lmx.trigger_cal()
+
+def long_data_check(bb, ifb, itter, nBytes, inner_itter):
+    print("long_data_check(itter={}, nBytes={}, inner_itter={})".format(itter, nBytes, inner_itter))
+    # turn off debug message from bb class
+    bb.auto_print = 0
+    for i in ifb:
+        # turn off all debug messages
+        i.debug = 0
+        # Add class parameter to track failed data
+        i.data_fail = 0
+
+    cur_time = time.monotonic()
+    #main loop
+    for x in tqdm.tqdm(range(itter)):
+        #inner loop
+        for i in ifb:
+            i.data_fail += i.spi_loopback(nBytes, inner_itter)
+        # time.sleep(0.001)
+    nxt_time = time.monotonic()
+    print("Complete!")
+    print("long_data_check(itter={}, nBytes={}, inner_itter={})\n".format(itter, nBytes, inner_itter)
+        + "\tResults:")
+
+    total_data_MB = itter*nBytes*inner_itter/1024/1024
+    total_time_s = nxt_time-cur_time
+    for i in ifb:
+        print("\tCS={}, Fails={}".format(i._cs, i.data_fail))
+    
+    print("Statistics:\n"
+        + "\t    Total Time : {} s\n".format(total_time_s)
+        + "\t               : {} min\n".format((total_time_s)/60)
+        + "\t               : {} hr\n".format((total_time_s)/60/60)
+        + "\t    Total Data : {} MB\n".format(total_data_MB)
+        + "\tOne Board data : {} MB\n".format(total_data_MB/len(ifb))
+        + "\t     Data Rate : {} MB/s\n".format(total_data_MB/total_time_s)
+        + "\t               : {} kB/s".format(total_data_MB/total_time_s*1024)
+        )
+
+
+def read_all_information(ifb):
+    print("___ read_all_information ___")
+    for i in range(len(ifb)):
+        (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
+        text = "Board = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C)
+        print(text)
+        ifb[i].test_results.append(text)
+
+        ifb[i].read_FWID()
+        text = 'firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8")
+        ifb[i].test_results.append(text)
+        print(text)    # saved inside the class
+
+        ifb[i].read_CID()
+        text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
+        ifb[i].test_results.append(text)
+        print('unique_id in hex: ' + text)
+
+        ifb[i].read_BSN()
+        text = 'board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8")
+        ifb[i].test_results.append(text)
+        print(text)
+
+        ifb[i].read_eeprom()
+        for x in ifb[i].eeprom:
+            text = 'eeprom : ' + x
+            ifb[i].test_results.append(text)
+            print(text)  # saved inside the class   
+
+def run_test_suite(bb, ifb):
+    for x in ifb:
+        # If the class doesn't have a variable to hold test results, add one
+        if(~hasattr(x, 'test_results')):
+            x.test_results = []
+
+        x.test_results.append(test_bb_loopback_enable(x))
+        x.test_results.append(test_bb_loopback_disable(x))
+        x.test_results.append(test_synth_init(x))
+        x.test_results.append(test_synth_powerdown_bit(x))
+        x.test_results.append(test_synth_powerup_bit(x))
+        for z in dac_list:
+            x.test_results.append(test_nulling_up_set(x, z))
+        for z in dac_list:
+            x.test_results.append(test_nulling_dn_set(x, z))
+        for z in frequnecy_list_MHz:
+            x.test_results.append(test_synth_set_Frequency_MHz(x, z))
+        x.test_results.append(test_synth_reset(x))
+        x.test_results.append(test_verify_thermal_limit(x))
+        x.test_results.append(test_mcu_reset(x))
+        x.test_results.append(test_mcu_hard_reset(bb, x))
+
+    read_all_information(ifb)
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("com_port", help="Com Port to communicate with Base Board")
     parser.add_argument("-n", "--num_itter", help="Set the number of itterations to run through test suite", default=1)
     parser.add_argument("-s", "--skip_running", help="Skip automatically starting tests", action="store_true", default=0)
+    parser.add_argument("-i", "--iPython", help="Drops into an iPython interface", action="store_true", default=0)
     parser.add_argument("-v", "--verbosity", help="Set terminal debugging verbosity", action="count", default=0)
-
+    
     args = parser.parse_args()
-
+    
     # Create base board interface class and set debug message level
     bb = base_board_rev3.Base_Board_Rev3(args.com_port)
     bb.get_devce_info()
@@ -195,64 +301,21 @@ if (__name__ == '__main__'):
         elif(args.verbosity == 2):
             ifb[i].debug = 2
         # Not a fan of adding an array to each class, but here we are
-        ifb[i].test_results = []
+        ifb[i].test_results = []     
 
-    def read_all_information():
-        print("___ read_all_information ___")
-        for i in range(dev_stack.bit_length()):
-            (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
-            text = "Board = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C)
-            print(text)
-            ifb[i].test_results.append(text)
-
-            ifb[i].read_FWID()
-            text = 'firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8")
-            ifb[i].test_results.append(text)
-            print(text)    # saved inside the class
-
-            ifb[i].read_CID()
-            text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
-            ifb[i].test_results.append(text)
-            print('unique_id in hex: ' + text)
-
-            ifb[i].read_BSN()
-            text = 'board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8")
-            ifb[i].test_results.append(text)
-            print(text)
-
-            ifb[i].read_eeprom()
-            for x in ifb[i].eeprom:
-                text = 'eeprom : ' + x
-                ifb[i].test_results.append(text)
-                print(text)  # saved inside the class      
-
-    read_all_information()
-
-    def run_test_suite():
-        for x in ifb:
-            x.test_results.append(test_bb_loopback_enable(x))
-            x.test_results.append(test_bb_loopback_disable(x))
-            x.test_results.append(test_synth_init(x))
-            x.test_results.append(test_synth_powerdown_bit(x))
-            x.test_results.append(test_synth_powerup_bit(x))
-            for z in dac_list:
-                x.test_results.append(test_nulling_up_set(x, z))
-            for z in dac_list:
-                x.test_results.append(test_nulling_dn_set(x, z))
-            for z in frequnecy_list_MHz:
-                x.test_results.append(test_synth_set_Frequency_MHz(x, z))
-            x.test_results.append(test_synth_reset(x))
-            x.test_results.append(test_verify_thermal_limit(x))
-            x.test_results.append(test_mcu_reset(x))
-            x.test_results.append(test_mcu_hard_reset(x))
-
-        read_all_information()
+    read_all_information(ifb)
     
     if(args.skip_running == False):
         print("-"*60)
         print("Running Test Suite")
         print("\n")
-        run_test_suite()
+        run_test_suite(ifb)
         print("-"*60)
         print("Finished Test Suite")
     
+    if(args.iPython == True):
+        import IPython
+        IPython.start_ipython(argv=[], user_ns=locals())
+    
+if (__name__ == '__main__'):
+    main()

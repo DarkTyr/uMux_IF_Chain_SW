@@ -7,6 +7,10 @@ Module lmx2592
 import csv
 from typing import Callable
 
+import importlib.resources
+
+
+
 class _REG_38:
     PLL_N_SHIFT = 1
 
@@ -213,9 +217,9 @@ class LMX2592:
             print(self.synth_init.__qualname__+"()")
 
         if(self._ref_freq_MHz == 100):
-            SYTNH_CONFIG_FILE = '../devices/tics_synth_init/lmx2592_init_100MHz_Ref.txt'
-            with open(SYTNH_CONFIG_FILE) as csvfile:
-                data_file = list(csv.reader(csvfile, delimiter='\t'))
+            SYTNH_CONFIG_FILE = 'lmx2592_init_100MHz_Ref.txt'
+            text = importlib.resources.read_text("uMux_IF_Chain.devices.tics_synth_init", SYTNH_CONFIG_FILE)
+            data_file = list(csv.reader(text.splitlines(), delimiter='\t'))
 
             if(self.debug):
                 print("\t Loaded file \"{}\" to init".format(SYTNH_CONFIG_FILE))
@@ -231,9 +235,9 @@ class LMX2592:
                 self._spi_write(data)
 
         elif(self._ref_freq_MHz == 200):
-            SYTNH_CONFIG_FILE = '../devices/tics_synth_init/lmx2592_init_200MHz_Ref.txt'
-            with open(SYTNH_CONFIG_FILE) as csvfile:
-                data = list(csv.reader(csvfile, delimiter='\t'))
+            SYTNH_CONFIG_FILE = 'lmx2592_init_200MHz_Ref.txt'
+            text = importlib.resources.read_text("uMux_IF_Chain.devices.tics_synth_init", SYTNH_CONFIG_FILE)
+            data_file = list(csv.reader(text.splitlines(), delimiter='\t'))
 
             if(self.debug):
                 print("\t Loaded file \"{}\" to init".format(SYTNH_CONFIG_FILE))

@@ -9,14 +9,9 @@ import argparse
 # Used for timing data transfer for the long_data_check()
 import time
 
-# CSV is used to process the initialization text file
-import csv
-
 # the main classes here
 from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
 from uMux_IF_Chain.base_board import base_board_rev3
-
-SYTNH_CONFIG_FILE = '../../HexRegisterValues.txt'
 
 # Indexes for the main array hiolding all of the sliders
 IDX_STRINGVAR = 1
@@ -29,10 +24,9 @@ IDX_TO = 6
 # Time delay to mimic use on real hardware
 CMD_DELAY = 0.01
 
-if (__name__ == '__main__'):
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("com_port", help="Com Port to communicate with Base Board")
-    parser.add_argument("-f", "--file", help="Synthesizer Init File, used when synth_config_from_file() is called", default=SYTNH_CONFIG_FILE)
     parser.add_argument("-v", "--verbosity", help="Set terminal debugging verbosity", action="count", default=0)
     parser.add_argument("-t", "--test", help="Allows running without hardware", action="store_true")
     args = parser.parse_args()
@@ -330,3 +324,5 @@ if (__name__ == '__main__'):
     # Start Main loop
     root.mainloop()
 
+if (__name__ == '__main__'):
+    main()

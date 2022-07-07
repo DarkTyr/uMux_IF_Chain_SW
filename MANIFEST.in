@@ -1,2 +1,3 @@
 include pyproject.toml
+include README.md
 recursive-include uMux_IF_Chain *.txt
