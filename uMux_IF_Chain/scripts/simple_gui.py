@@ -9,6 +9,9 @@ import argparse
 # Used for timing data transfer for the long_data_check()
 import time
 
+# Used to format printed information form the IF Boards
+import binascii
+
 # the main classes here
 from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
 from uMux_IF_Chain.base_board import base_board_rev3
@@ -218,7 +221,7 @@ def main():
     if(args.test == False):
         # Create base board interface class and set debug message level
         bb = base_board_rev3.Base_Board_Rev3(args.com_port)
-        bb.get_devce_info()
+        bb.get_device_info()
         if(args.verbosity == 0):
             bb.auto_print = 0
         elif(args.verbosity == 1):
@@ -240,6 +243,37 @@ def main():
                 ifb[i].debug = 1
             elif(args.verbosity == 2):
                 ifb[i].debug = 2
+        
+        print("__Base Board Information__")
+        print(bb.fw_identity)
+        print('\t' + bb.fw_description)
+        print('\t' + bb.fw_serial_number)
+        print('\t' + bb.fw_version)
+        print('\t' + bb.fw_timestamp)
+
+        print("__IF Board Information__")
+        for i in range(len(ifb)):
+            (synth_temp_C, mcu_temp_C) = ifb[i].read_temperatures_C()
+            text = "Board = {} : synth_temp_C = {:.3f}, mcu_temp_C = {:.3f}".format(i, synth_temp_C, mcu_temp_C)
+            print(text)
+
+            ifb[i].read_FWID()
+            text = 'firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8")
+            print(text)    # saved inside the class
+
+            ifb[i].read_CID()
+            text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
+            print('unique_id in hex: ' + text)
+
+            ifb[i].read_BSN()
+            text = 'board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8")
+            print(text)
+
+            ifb[i].read_eeprom()
+            for x in ifb[i].eeprom:
+                text = 'eeprom : ' + x
+                print(text)  # saved inside the class
+
     else:
         n_ifb = 4
         ifb = [0x00] * n_ifb

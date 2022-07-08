@@ -248,7 +248,7 @@ class uMux_IF_Unit_Test:
             for x in ifb[i].eeprom:
                 text = 'eeprom : ' + x
                 ifb[i].test_results.append(text)
-                print(text)  # saved inside the class   
+                print(text)  # saved inside the class
 
     def run_test_suite(self, bb, ifb):
         for x in ifb:
