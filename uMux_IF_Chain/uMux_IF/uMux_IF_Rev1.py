@@ -519,9 +519,10 @@ class UMux_IF_Rev1:
             text_array[idx] = bytes(ret[0+16*idx : 16 + 16*idx]).decode("utf8")
         self.eeprom = text_array
         if(print_human_readable):
-            print(text_array[0])
-            for idx in range(nfields - 1):
-                print("  " + text_array[idx + 1])
+            print("____ uMux_IF_Rev1 ____")
+            print("CS = 0x{:02X}".format(self._cs))
+            for idx in range(nfields):
+                print("  " + text_array[idx])
         return text_array
 
     def _write_eeprom(self, bsn, mcu_pn, freq_range, mixer_pn, synth_pn, bb_pn, lo_leak_pn):
