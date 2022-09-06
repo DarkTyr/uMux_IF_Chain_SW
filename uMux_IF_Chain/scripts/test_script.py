@@ -253,7 +253,7 @@ class uMux_IF_Unit_Test:
     def run_test_suite(self, bb, ifb):
         for x in ifb:
             # If the class doesn't have a variable to hold test results, add one
-            if(~hasattr(x, 'test_results')):
+            if(not hasattr(x, 'test_results')):
                 x.test_results = []
 
             x.test_results.append(self.test_bb_loopback_enable(x))
