@@ -7,7 +7,7 @@ that contains a tyr command processor.
 '''
 # System level imports
 import serial
-# import time
+import time
 
 # local imports
 from uMux_IF_Chain.devices import tmp275
@@ -37,6 +37,11 @@ class Base_Board_Rev3:
         self.tmp_power_converter = tmp275.TMP275(0x49)
         self.tmp_power_converter.link_methods(self.i2c_write, self.i2c_write_read)
 
+        #dangerous, keeps a lot of data around
+        self._enable_logging = False
+        self._log = []
+        self._com_delay_s = 0.00
+
     def close(self):
         '''Close the serial port'''
         self.com.close()
@@ -61,12 +66,22 @@ class Base_Board_Rev3:
         #Append the termination character self._termination
         self.sent_str = str_in + self._termination
         #write to the serial interface and then compare the number of bytes sent
+        if(self._enable_logging):
+            self._log.append("_write:  sent_str : " + self.sent_str)
+
         self.ret_int = self.com.write(self.sent_str.encode())
         #check length
         if(self.ret_int != len(self.sent_str)):
             print("\tCRIT ERROR: Failed to send all of the bytes within the timeout period!!")
             return
-        self.rcvd_str = self.com.read_until()[:-1].decode()
+
+        self.rcvd_str = self.com.read_until().decode()
+
+        if(self._enable_logging):
+            self._log.append("_write:read_until : " + self.rcvd_str)
+
+        self.rcvd_str = self.rcvd_str[:-1]
+
         if(self.rcvd_str != "!RCVD"):
             print("ERROR: Firmware didn't understand the sent command: \n\tsent_str: " + 
                            self.sent_str + "\n\trcvd_str: " + self.rcvd_str)
@@ -76,7 +91,11 @@ class Base_Board_Rev3:
 
     def _read(self):
         '''Read from the serial com port using read_until()'''
+        if(self._com_delay_s > 0):
+            time.sleep(self._com_delay_s)
         temp_str = self.com.read_until().decode()
+        if(self._enable_logging):
+            self._log.append(" _read:read_until : " + temp_str)
         self.ret_str = temp_str[:-1]   # Remove line termination
         if(self.auto_print > 1):
                 print('\t' + self.ret_str)
@@ -140,7 +159,7 @@ class Base_Board_Rev3:
 
         # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: I2C_Write Failed : " + self.ret_str)
             return
         elif(self.auto_print > 0):
@@ -171,7 +190,7 @@ class Base_Board_Rev3:
 
         # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: I2C_Write_Read Failed : " + self.ret_str)
             return
         elif(self.auto_print > 0):
@@ -203,7 +222,7 @@ class Base_Board_Rev3:
 
         # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: I2C_Read Failed : " + self.ret_str)
             return []
         elif(self.auto_print > 0):
@@ -231,7 +250,7 @@ class Base_Board_Rev3:
 
         # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: I2C Scan Addr Failed : " + self.ret_str)
             return []
         elif(self.auto_print > 0):
@@ -281,7 +300,7 @@ class Base_Board_Rev3:
 
         # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: SPI_Write Failed : " + self.ret_str)
             return
         elif(self.auto_print > 0):
@@ -320,7 +339,7 @@ class Base_Board_Rev3:
 
         # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: SPI_Write_Read Failed : " + self.ret_str)
             return
         elif(self.auto_print > 0):
@@ -352,7 +371,7 @@ class Base_Board_Rev3:
 
                 # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: SPI_Read Failed : " + self.ret_str)
             return []
         elif(self.auto_print > 0):
@@ -378,7 +397,7 @@ class Base_Board_Rev3:
         str_to_write = 'SPI:DEV_STACK'
         self._write(str_to_write)
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: SPI_get_dev_stack Failed : " + self.ret_str)
             return None
         # read the returned data
@@ -407,7 +426,7 @@ class Base_Board_Rev3:
 
         # Read back the return value from the interface
         self._read()
-        if(self.ret_str != "OKAY"):
+        if(not((self.ret_str == "OKAY") | (self.ret_str == "KAY"))):
             print("\tERROR: SPI Hard Reset Failed : " + self.ret_str)
             return
         elif(self.auto_print > 0):
