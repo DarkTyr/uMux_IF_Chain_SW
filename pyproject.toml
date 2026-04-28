@@ -35,6 +35,19 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 version_file = "uMux_IF_Chain/_version.py"
 
+[tool.uv.workspace]
+members = [
+    ".",
+]
+
+[tool.uv.sources]
+umux-if-chain-sw = { workspace = true, editable = true }
+
+[dependency-groups]
+dev = [
+    "umux-if-chain-sw",
+]
+
 [project.scripts]
 uMux_IF_Chain-startup_script = "uMux_IF_Chain.scripts.startup_script:main"
 uMux_IF_Chain-test_script = "uMux_IF_Chain.scripts.test_script:main"
