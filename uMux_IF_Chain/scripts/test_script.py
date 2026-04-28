@@ -276,7 +276,7 @@ class uMux_IF_Unit_Test:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("com_port", help="Com Port to communicate with Base Board")
+    parser.add_argument("url", help="URL to specify communication channel to Base Board")
     parser.add_argument("-n", "--num_itter", help="Set the number of itterations to run through test suite (not used yet)", default=1)
     parser.add_argument("-s", "--skip_running", help="Skip automatically starting tests", action="store_true", default=0)
     parser.add_argument("-i", "--iPython", help="Drops into an iPython interface", action="store_true", default=0)
@@ -285,7 +285,7 @@ def main():
     args = parser.parse_args()
     
     # Create base board interface class and set debug message level
-    bb = base_board_rev3.Base_Board_Rev3(args.com_port)
+    bb = base_board_rev3.Base_Board_Rev3(url=args.url)
     bb.get_device_info()
     if(args.verbosity == 0):
         bb.auto_print = 0

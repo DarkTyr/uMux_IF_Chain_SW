@@ -20,7 +20,7 @@ from uMux_IF_Chain.base_board import base_board_rev3
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("com_port", help="Com Port to communicate with Base Board")
+    parser.add_argument("url", help="URL to specify communication channel to Base Board")
     parser.add_argument("-v", "--verbosity", help="Set terminal debugging verbosity", action="count", default=0)
     parser.add_argument("-i", "--iPython", help="Drops into an iPython interface (Always active)", action="store_true", default=True)
     parser.add_argument("-s", "--skip_startup", help="Skips startup r/w, only creates objects", action="store_true", default=0)
@@ -28,7 +28,7 @@ def main():
     args = parser.parse_args()
 
     # Create base board interface class and set debug message level
-    bb = base_board_rev3.Base_Board_Rev3(args.com_port)
+    bb = base_board_rev3.Base_Board_Rev3(url=url)
     if(~args.skip_startup == False):
         bb.get_device_info()
 
@@ -62,7 +62,7 @@ def main():
             ifb[i].debug = 2
 
     banner = "____ uMux_IF_Chain-startup_script ____\n" \
-           + "        Com_Port = {}\n".format(args.com_port) \
+           + " com channel url = {}\n".format(args.url) \
            + "       verbosity = {}\n".format(args.verbosity) \
            + "    skip_startup = {}\n".format(args.skip_startup) \
            + "           cards = {}\n".format(dev_stack) \

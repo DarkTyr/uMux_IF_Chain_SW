@@ -29,7 +29,7 @@ CMD_DELAY = 0.01
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("com_port", help="Com Port to communicate with Base Board")
+    parser.add_argument("url", help="URL to specify communication channel to Base Board")
     parser.add_argument("-v", "--verbosity", help="Set terminal debugging verbosity", action="count", default=0)
     parser.add_argument("-t", "--test", help="Allows running without hardware", action="store_true")
     args = parser.parse_args()
@@ -220,7 +220,7 @@ def main():
 
     if(args.test == False):
         # Create base board interface class and set debug message level
-        bb = base_board_rev3.Base_Board_Rev3(args.com_port)
+        bb = base_board_rev3.Base_Board_Rev3(url=args.url)
         bb.get_device_info()
         if(args.verbosity == 0):
             bb.auto_print = 0
