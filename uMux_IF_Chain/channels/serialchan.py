@@ -11,7 +11,6 @@ class SerialChan(channel):
         # Strip the slash that is passed in and then make sure it is all upper case. 
         if(platform.system() == "Windows"):
             self.port   = port.strip('/')
-            print(self.port)
         else:
             self.port   = port
         self.baudrate   = baudrate
