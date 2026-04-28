@@ -3,11 +3,11 @@
 import re
 
 # Local Library Imports
-import uMux_IF_BaseBoard
-from uMux_IF_BaseBoard import CommError
+from uMux_IF_Chain.base_board import umux_if_base_board
+from uMux_IF_Chain.base_board.umux_if_base_board import CommError
 
 
-class BB_Rev4_Pico(uMux_IF_BaseBoard.uMux_IF_BaseBoard):
+class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     def __init__(self, port=None, channel=None, url=None, doopen=True):
         self.HW_ID = "BB_Rev4_Pico"
         super().__init__(port=port, channel=channel, url=url, doopen=doopen)

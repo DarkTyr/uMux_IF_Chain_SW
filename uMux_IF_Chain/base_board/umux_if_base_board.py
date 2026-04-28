@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-import channels
-
-# from .BB_Rev3_F732 import BB_Rev3_F732
-# from .BB_Rev4_Pico import BB_Rev4_Pico
+from uMux_IF_Chain import channels
 
 class CommError(Exception):
     pass
@@ -167,8 +164,8 @@ class uMux_IF_BaseBoard:
             print('\t' + self.fw_timestamp)
         
     
-import BB_Rev3_F732
-import BB_Rev4_Pico
+from uMux_IF_Chain.base_board import bb_rev3_f732
+from uMux_IF_Chain.base_board import bb_rev4_pico
 
 def open_uMux_IF_BaseBoard(port = None, channel = None, url = None, doopen = True):
     base = uMux_IF_BaseBoard(port=port, channel=channel, url=url, doopen=doopen)
@@ -176,10 +173,10 @@ def open_uMux_IF_BaseBoard(port = None, channel = None, url = None, doopen = Tru
     base.close()
 
     if "BB_Rev4_Pico" in base.fw_identity:
-        return BB_Rev4_Pico.BB_Rev4_Pico(port=port, channel=channel, url=url, doopen=doopen)
+        return bb_rev4_pico.BB_Rev4_Pico(port=port, channel=channel, url=url, doopen=doopen)
 
     if "BB_Rev3_F732" in base.fw_identity:
-        return BB_Rev3_F732.BB_Rev3_F732(port=port, channel=channel, url=url, doopen=doopen)
+        return bb_rev3_f732.BB_Rev3_F732(port=port, channel=channel, url=url, doopen=doopen)
 
     raise RuntimeError(f"Unknown hardware type: {base.fw_identity}")
 
