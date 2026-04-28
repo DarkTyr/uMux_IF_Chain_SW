@@ -1,18 +1,31 @@
 # uMux_IF_Chain_SW
+
 Microwave Multiplexer Intermediate Frequency Conversion Chain Software
 
 ## Setup for Development
-https://setuptools.pypa.io/en/latest/userguide/development_mode.html
 
-## Installation 
-One can use pip to install the package. Adding "-e" makes it a link to the source files rather than copying them to the installation directory. This allows them to be edited easily. 
+With your development UV python environment active navigate to the top directory and run
+
+``` terminal
+uv add --editable --active --dev .
+```
+
+the more normal method using "-e" no longer functions unless you use a setup.py. the active flag means it will install it in the currently active env. 
+
+## Installation
+
+One can use pip to install the package.
 
 Run below line in terminal at the folder level with setup.py
-```
-pip install -e .
+
+``` terminal
+uv pip install .
 ```
 
-# Simple Script to run
+## Simple Script to run
+
+TODO: Update these calls now, since we properly install the scripts they should be runnable from the env terminal.
+
 - navigate to "uMux_IF_Chain_SW/uMux_IF_Chain/scripts"
 - start iPython
 - in iPython, run windows_startup.py /dev/ttyACM0
@@ -28,20 +41,26 @@ When starting from a powered down state you must call the synth_init() method fo
 At power up, the base band loopback is enabled. This loops the DAC output around to the ADCs internally with no modifications except PCB and mux losses. 
 
 to enable the loopback
+
 - ifb[0].base_band_loop_back_enable()
+
 to disable the loopback
+
 - ifb[0].base_band_loop_back_disable()
 
 After intialization of the synthesizer, the user can set the frequency by calling:
+
 - ifb[0].synth_set_Frequency_MHz(4500)
+
 Where 4500 is the frequency is megahertz. There is a frequency resolution of 200kHz, this could be changed later on if need be.
-The set frequency method returns the actual frequency that was calculated. 
+The set frequency method returns the actual frequency that was calculated.
 
-if you don't want to run the script, a user can instantiate the base_board class and IF board classes from anywhere (assuming correct conda environment). 
+if you don't want to run the script, a user can instantiate the base_board class and IF board classes from anywhere (assuming correct conda environment).
 
-'''
+'''python
 from uMux_IF_Chain.base_board import base_board_rev3
 bb = base_board_rev3.Base_Board_Rev3(port="/dev/ttyACM0")
+
 # Determine what IF_Boards Rev1 are present
 dev_stack = bb.spi_get_dev_stack()
 n_ifb = dev_stack.bit_length()
