@@ -26,13 +26,13 @@ class channel:
 # )
 
 schemes = dict(
-    file = ("file", "channels.filechan", None),
-    tcp = ("tcp", "channels.socketchan", "tcpchan"),
-    udp = ("udp", "channels.socketchan", "udpchan"),
-    serial = ("serial", "channels.serialchan", None),
-    usbtmc = ("usbtmc", "channels.ivichan", "usbtmcchan"),
-    vxi11 = ("vxi11", "channels.ivichan", "vxi11chan"),
-    mmap = ("mmap", "channels.mmap", "mmap"),
+    file = ("file", "uMux_IF_Chain.channels.filechan", None),
+    tcp = ("tcp", "uMux_IF_Chain.channels.socketchan", "tcpchan"),
+    udp = ("udp", "uMux_IF_Chain.channels.socketchan", "udpchan"),
+    serial = ("serial", "uMux_IF_Chain.channels.serialchan", None),
+    usbtmc = ("usbtmc", "uMux_IF_Chain.channels.ivichan", "usbtmcchan"),
+    vxi11 = ("vxi11", "uMux_IF_Chain.channels.ivichan", "vxi11chan"),
+    mmap = ("mmap", "uMux_IF_Chain.channels.mmap", "mmap"),
 )
 
 def registerchannel(scheme, moduleref, classname = None):

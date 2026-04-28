@@ -10,7 +10,8 @@ class SerialChan(channel):
         # Because Windows has to be different than every other system
         # Strip the slash that is passed in and then make sure it is all upper case. 
         if(platform.system() == "Windows"):
-            self.port       = port.strip('/').upper()
+            self.port   = port.strip('/')
+            print(self.port)
         else:
             self.port   = port
         self.baudrate   = baudrate
