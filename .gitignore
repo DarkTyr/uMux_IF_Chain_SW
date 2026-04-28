@@ -33,6 +33,9 @@ MANIFEST
 *.manifest
 *.spec
 
+# Use toml-to-req to compute this
+requirements.txt
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt

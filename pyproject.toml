@@ -1,6 +1,41 @@
+[project]
+name = "uMux_IF_Chain_SW"
+authors = [
+    {name = "Dark Tyr"}
+    ]
+dynamic = ["version"]
+description = "Microwave Multiplexer Intermediate Frequency Conversion Chain Control Software"
+dependencies = [
+    "pyserial",
+    "tqdm",
+    "numpy",
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {file = "LICENSE.md"}
+keywords = ["microcal-daq", "hardware", "control"]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Repository = "https://gitlab.nist.gov/gitlab/qsg/foreign/uMux_IF_Chain_SW.git"
+Issues = "https://gitlab.nist.gov/gitlab/qsg/foreign/uMux_IF_Chain_SW/issues"
+
 [build-system]
 requires = [
-    "setuptools >= 40.6.0",
-    "wheel"
+    "setuptools>=61",
+    "setuptools_scm>=8"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_file = "uMux_IF_Chain/_version.py"
+
+[project.scripts]
+uMux_IF_Chain-startup_script = "uMux_IF_Chain.scripts.startup_script:main"
+uMux_IF_Chain-test_script = "uMux_IF_Chain.scripts.test_script:main"
+uMux_IF_Chain-simple_gui = "uMux_IF_Chain.scripts.simple_gui:main"
