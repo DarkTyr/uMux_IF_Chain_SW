@@ -86,18 +86,18 @@ class UMux_IF_Rev1:
         self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, 100)
 
     def _write(self, data: list[int]) -> None:
-        self._bb.spi_write(self._cs, data)
+        self._bb.stack_write(self._cs, data)
         if(self.debug):
             print("uMux_IF_Rev1._write(): _cs={} data={}".format(self._cs, data))
 
     def _read(self, nBytes: int) -> list[int]:
-        ret = self._bb.spi_read(self._cs, nBytes)
+        ret = self._bb.stack_read(self._cs, nBytes)
         if(self.debug):
             print("uMux_IF_Rev1._read():  _cs={} nBytes={} ret={}".format(self._cs, nBytes, ret))
         return ret
 
     def _write_read(self, nBytes_read: int, data: list[int]) -> list[int]:
-        ret = self._bb.spi_write_read(self._cs, nBytes_read, data)
+        ret = self._bb.stack_write_read(self._cs, nBytes_read, data)
         if(self.debug):
             print("uMux_IF_Rev1._write_read(): _cs={} nBytes={}\n\tdata={}\n\tret={}" \
                   .format(self._cs, nBytes_read, data, ret))
