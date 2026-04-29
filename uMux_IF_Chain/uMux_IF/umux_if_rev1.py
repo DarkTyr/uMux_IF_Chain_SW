@@ -75,7 +75,7 @@ class UMux_IF_Rev1(uMux_IF_Board):
         self._cs = chip_select
         self._bb = base_board
         self._dac_nbits = 14
-        self.debug = 1
+        self.debug = 0
         self.firmware_id = []
         self.unique_id = []
         self.board_serial_number = []
