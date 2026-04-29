@@ -168,7 +168,7 @@ class uMux_IF_BaseBoard:
     def i2c_read(self, i2c_addr: int, num_bytes: int) -> list: raise NotImplementedError
     def i2c_scan_addr(self) -> list: raise NotImplementedError
 
-    def clk_reference(self) -> str: raise NotImplementedError
+    def clk_reference(self, print2console) -> str: raise NotImplementedError
 
     def stack_write(self, chip_select: int, data_array: list) -> bool: raise NotImplementedError
     def stack_write_read(self, chip_select: int, nbytes_read: int, data_array: list) -> list: raise NotImplementedError
@@ -178,8 +178,8 @@ class uMux_IF_BaseBoard:
 
     def enable_periodic_checking(self): raise NotImplementedError
     def disable_periodic_checking(self): raise NotImplementedError
-    def read_temp_C(self): raise NotImplementedError
-    def read_temp_F(self): raise NotImplementedError
+    def read_temp_C(self, print2console): raise NotImplementedError
+    def read_temp_F(self, print2console): raise NotImplementedError
 
 
 from uMux_IF_Chain.base_board import bb_rev3_f732
