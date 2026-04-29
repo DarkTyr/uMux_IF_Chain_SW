@@ -44,9 +44,9 @@ def main():
 
     print("")
     if(args.power_on):
-        cur_state = bb.stack_pwr_get()
-        if(not(cur_state)):
-            if(bb.HW_ID == "BB_Rev4_Pico"):
+        if(bb.HW_ID == "BB_Rev4_Pico"):
+            cur_state = bb.stack_pwr_get()
+            if(not(cur_state)):
                 bb.stack_pwr_set(True)
                 time.sleep(bb.power_on_delay_s)
             else:
