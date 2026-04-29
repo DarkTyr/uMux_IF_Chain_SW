@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from uMux_IF_Chain import channels
+from uMux_IF_Chain.channels import serialchan
 
 class CommError(Exception):
     pass
@@ -20,9 +21,10 @@ class uMux_IF_BaseBoard:
         if (channel != None):
             self.com = channel
         elif (port != None):
-            self.com = channels.serialchan.serialchan(port=port, timeout=self._timeout)
+            # self.com = channels.serialchan.serialchan(port=port, timeout=self._timeout)
+            self.com = channels.serialchan.SerialChan(port=port, timeout=self._timeout)
         elif (url != None):
-            self.com = channels.fromurl(url)
+            self.com = channels.fromurl(url, defaultport=3032, defaultparams=dict(timeout=self._timeout, buffering=0))
 
         if doopen: 
             self.open()
