@@ -1,12 +1,17 @@
-# from .uMux_IF_Baseboard import uMux_IF_BaseBoard
 
 from uMux_IF_Chain.base_board import umux_if_base_board
+from uMux_IF_Chain.devices import tmp275
 
 class BB_Rev3_F732(umux_if_base_board.uMux_IF_BaseBoard):
     def __init__(self, port=None, channel=None, url=None, doopen=True):
         self.HW_ID = "BB_Rev3_F732"
         super().__init__(port=port, channel=channel, url=url, doopen=doopen)
-
+        # Local Devices
+        self.tmp_center = tmp275.TMP275(0x48)
+        self.tmp_center.link_methods(self.i2c_write, self.i2c_write_read)
+        self.tmp_power_converter = tmp275.TMP275(0x49)
+        self.tmp_power_converter.link_methods(self.i2c_write, self.i2c_write_read)
+        
     def clk_reference(self) -> str:
         str_to_write = 'I2C:SI_LOCK?' # Assemble final string to be sent
         self._write(str_to_write)
