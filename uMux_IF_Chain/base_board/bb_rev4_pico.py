@@ -11,6 +11,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     def __init__(self, port=None, channel=None, url=None, doopen=True):
         self.HW_ID = "BB_Rev4_Pico"
         super().__init__(port=port, channel=channel, url=url, doopen=doopen)
+        self.get_device_info()
 
     def i2c_write(self, i2c_addr: int, data_array: list) -> bool: 
         # I2C:WRITE <devAddr>,<numBytes>,<hex bytes...>
@@ -134,7 +135,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
 
 
     def stack_write(self, chip_select: int, data_array: list) -> bool:
-        # Check the datatype of the array and range of each element
+        # {SPI:WRITE Chip_Sel, nBytes_send, nData}\n
 
         write_size = len(data_array)
         write_size_str = self._byteArrayToStrHex([write_size])
@@ -159,12 +160,46 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
             CommError("Never Recieved !OKAY from the device")
             return False
         
+    def stack_write_read(self, chip_select: int, nbytes_read: int, data_array: list) -> list:
+        # {SPI:WRITE_READ Chip_Sel, nBytes_send, nBytes_rcv, nData}\n
+
+        write_size = len(data_array)
+        write_size_str = self._byteArrayToStrHex([write_size])
+        read_size_str = self._byteArrayToStrHex([nbytes_read])
+        
+        cs_str = self._byteArrayToStrHex([chip_select]) # Convert int number to valid hex
+
+        #Convert the uint8 array into a long string to be appened to the main string to write
+        data_str = self._byteArrayToStrHex(data_array)
+
+        # Construct the main string to write to the VCP device
+        str_to_write = f'STACK:WRITE_READ {cs_str},{write_size_str},{read_size_str},{data_str}'
+        self._write(str_to_write)
+
+        # Read back the return value from the interface
+        self._read()
+
+        if(not(self.ret_str.startswith("!OKAY"))):
+            # I don't think we need the below because the firmware will timeout and send an !ERR
+            # which will be caught in the superclass _read command
+            CommError("Never Recieved !OKAY from the device")
+            return False
+        
+        # read the returned data
+        self._read(wait_end=True)
+
+        # convert the string into bytes
+        self.ret_str_data = self.ret_str
+        ret_array = self._strHextoByteArrayList(self.ret_str_data)
+        return ret_array
+
     def stack_read(self, chip_select: int, num_bytes: int) -> list:
+        # {SPI:READ Chip_Sel, nBytes_rcv}
         nbytes_str  = self._byteArrayToStrHex([num_bytes])
         cs_str      = self._byteArrayToStrHex([chip_select])
 
         # Construct the main string to write to the VCP device
-        str_to_write = 'STACK:READ ' + cs_str + "," + nbytes_str # Assemble final string to be sent
+        str_to_write = f'STACK:READ {cs_str},{nbytes_str}'# Assemble final string to be sent
         self._write(str_to_write)
 
                 # Read back the return value from the interface
@@ -202,7 +237,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     
     def stack_hard_reset(self, chip_select: int): raise NotImplementedError
 
-    def clk_reference(self) -> str:
+    def clk_reference(self, print2console=False) -> str:
         str_to_write = 'CLK:STATus?' # Assemble final string to be sent
         self._write(str_to_write)
 
@@ -211,7 +246,14 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
 
         if(self.auto_print > 0):
             print('\t' + self.ret_str)
-        return self.ret_str
+
+        self.ret_str_data = self.ret_str
+
+        if(print2console==True):
+            print(self.ret_str)
+            return ''
+        else:
+            return self.ret_str
     
     def set_periodic_checking_enable(self) -> bool:
         self._write("FW:PERiodic EN")
@@ -244,19 +286,26 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
             print("Somethign Went Wrong, Never recieved !OKAY")
             return False
 
-    def read_temp_C(self) -> list:
+    def read_temp_C(self, print2console) -> list:
         self._write("FW:TEMPerature?")
         self._read(wait_end=True, remove_term=True)
 
         temps = re.findall(r"[-+]?\d+\.\d+", self.ret_str)
         si_temp, smps_temp = map(float, temps)
 
+        if(print2console):
+            print(f"CLK IC Temp = {si_temp} °C  :  Power Supply Temp = {smps_temp} °C ")
+
         return [si_temp, smps_temp]
 
-    def read_temp_F(self) -> list:
+    def read_temp_F(self, print2console) -> list:
         [si_temp, smps_temp] = self.read_temp_C()
         si_temp = si_temp * 9/5 + 32
         smps_temp = smps_temp * 9/5 + 32
+
+        if(print2console):
+            print(f"CLK IC Temp = {si_temp} °F  :  Power Supply Temp = {smps_temp} °F ")
+
         return [si_temp, smps_temp]
 
 
