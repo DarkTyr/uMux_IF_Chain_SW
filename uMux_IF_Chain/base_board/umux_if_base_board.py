@@ -59,7 +59,7 @@ class uMux_IF_BaseBoard:
             CommError("\tCRIT ERROR: Failed to send all of the bytes within the timeout period!!")
 
         ## If the command is a valid command, the device will send back "!RCVD"
-        self.rcvd_str = self._read_line() # _read_line handles the auto_print
+        self.rcvd_str = self._read() # _read_line handles the auto_print
         if(self.rcvd_str != "!RCVD"):
             CommError("ERROR: Firmware didn't understand the sent command: \n\tsent_str: " + 
                            self.sent_str + "\n\trcvd_str: " + self.rcvd_str)
