@@ -11,7 +11,102 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     def __init__(self, port=None, channel=None, url=None, doopen=True):
         self.HW_ID = "BB_Rev4_Pico"
         super().__init__(port=port, channel=channel, url=url, doopen=doopen)
+
+    def i2c_write(self, i2c_addr: int, data_array: list) -> bool: 
+        # I2C:WRITE <devAddr>,<numBytes>,<hex bytes...>
+        # All In hex
+        # I2C:WRITE 20, 2, 1020\n
+        write_size = len(data_array)
+
+        write_size_str = self._byteArrayToStrHex([write_size])
+        hex_addr = self._byteArrayToStrHex([i2c_addr])
+        data_str = self._byteArrayToStrHex(data_array)
+
+        str_to_write = 'I2C:WRITE:' + hex_addr + "," + write_size_str + ',' + data_str
+
+        self._write(str_to_write)
+
+        self._read()
+        if(not(self.ret_str.startswith("!OKAY"))):
+            CommError("I2C Write Failed")
+        else:
+            return True # Write was good
+
+    def i2c_write_read(self, i2c_addr: int, nbytes_read: int, data_array: list) -> list:
+        # I2C Write and then read with a repeated start
+        # I2C:WRRD <devAddr>, <txNumBytes>, <rxNumBytes>, <txData>
+
+        write_size = len(data_array)
+
+        write_size_str = self._byteArrayToStrHex([write_size])
+        hex_addr = self._byteArrayToStrHex([i2c_addr])
+        read_size_str = self._byteArrayToStrHex([nbytes_read])
+        data_str = self._byteArrayToStrHex(data_array)
+
+        str_to_write = 'I2C:WRRD:' + hex_addr + "," + write_size_str + ',' + read_size_str + ',' + data_str
+
+        self._write(str_to_write)
+
+        self._read()
+        if(not(self.ret_str.startswith("!OKAY"))):
+            CommError("I2C Write Failed")
         
+        self._read(wait_end=True, remove_term=True)
+        self.ret_str_data = self.ret_str
+        data_list = self._strHextoByteArrayList(self.ret_str_data)
+        return data_list
+    
+    def i2c_write_read_nrp(self, i2c_addr: int, nbytes_read: int, data_array: list) -> list:
+        # I2C Write and then read no repeated start
+        # I2C:WRRD <devAddr>, <txNumBytes>, <rxNumBytes>, <txData>
+
+        write_size = len(data_array)
+
+        write_size_str = self._byteArrayToStrHex([write_size])
+        hex_addr = self._byteArrayToStrHex([i2c_addr])
+        read_size_str = self._byteArrayToStrHex([nbytes_read])
+        data_str = self._byteArrayToStrHex(data_array)
+
+        str_to_write = 'I2C:WRRD:' + hex_addr + "," + write_size_str + ',' + read_size_str + ',' + data_str
+
+        self._write(str_to_write)
+
+        self._read()
+        if(not(self.ret_str.startswith("!OKAY"))):
+            CommError("I2C Write Failed")
+        
+        self._read(wait_end=True, remove_term=True)
+        self.ret_str_data = self.ret_str
+        data_list = self._strHextoByteArrayList(self.ret_str_data)
+        return data_list
+
+    def i2c_read(self, i2c_addr: int, num_bytes: int) -> list:
+        # I2C Read
+        # II2C:READ <devAddr>, <rxNumBytes>
+
+        hex_addr = self._byteArrayToStrHex([i2c_addr])
+        read_size_str = self._byteArrayToStrHex([num_bytes])
+
+        str_to_write = 'I2C:WRRD:' + hex_addr + "," + read_size_str
+
+        self._write(str_to_write)
+
+        self._read()
+        if(not(self.ret_str.startswith("!OKAY"))):
+            CommError("I2C Write Failed")
+        
+        self._read(wait_end=True, remove_term=True)
+        self.ret_str_data = self.ret_str
+        data_list = self._strHextoByteArrayList(self.ret_str_data)
+        return data_list
+    
+    def i2c_scan_addr(self) -> list:
+        str_to_write = "I2C:SCAN?"
+        self._write(str_to_write)
+        self._read(wait_end=True, remove_term=False)
+        self.ret_str_data = self.ret_str
+        addresses = [int(x, 16) for x in re.findall(r"0x[0-9A-Fa-f]+", self.ret_str_data)]
+        return addresses
 
     def stack_pwr_get(self) -> bool:
         self._write("STACK:PWR?")
@@ -105,6 +200,8 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         ret_array = self._strHextoByteArrayList(self.ret_str_data)
         return ret_array[0]
     
+    def stack_hard_reset(self, chip_select: int): raise NotImplementedError
+
     def clk_reference(self) -> str:
         str_to_write = 'CLK:STATus?' # Assemble final string to be sent
         self._write(str_to_write)
