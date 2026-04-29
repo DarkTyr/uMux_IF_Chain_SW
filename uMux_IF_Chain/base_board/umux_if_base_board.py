@@ -178,7 +178,7 @@ class uMux_IF_BaseBoard:
 
     def set_periodic_checking_enable(self): raise NotImplementedError
     def set_periodic_checking_disable(self): raise NotImplementedError
-    def get_periodic_checking(self):  raise NotImplementedError
+    def get_periodic_checking(self): raise NotImplementedError
     def read_temp_C(self, print2console): raise NotImplementedError
     def read_temp_F(self, print2console): raise NotImplementedError
 
