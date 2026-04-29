@@ -7,8 +7,9 @@ import argparse
 import IPython
 
 # the main classes here
+from uMux_IF_Chain.base_board import umux_if_base_board
 from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
-from uMux_IF_Chain.base_board import base_board_rev3
+
 
 
 def main():
@@ -26,9 +27,9 @@ def main():
     args = parser.parse_args()
 
     # Create base board interface class and set debug message level
-    bb = base_board_rev3.Base_Board_Rev3(url=args.url)
+    bb = umux_if_base_board.open_uMux_IF_BaseBoard(url=args.url)
     if (~args.skip_startup == False):
-        bb.get_device_info()
+        bb.get_device_info(print2console=True)
 
     if (args.verbosity == 0):
         bb.auto_print = 0
@@ -36,6 +37,8 @@ def main():
         bb.auto_print = 1
     elif (args.verbosity == 2):
         bb.auto_print = 2
+    elif (args.verbosity == 3):
+        bb.auto_print = 3
 
     print("")
 
@@ -43,7 +46,7 @@ def main():
 
     if (args.skip_startup == False):
         # Determine what IF_Boards Rev1 are present
-        dev_stack = bb.spi_get_dev_stack()
+        dev_stack = bb.stack_get_dev_stack()
 
     print("DEV_STACK : 0x" + hex(dev_stack).upper()[2:])
     n_ifb = dev_stack.bit_length()
