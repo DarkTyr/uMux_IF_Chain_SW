@@ -11,7 +11,7 @@ import time
 import numpy as np
 
 # local imports
-# from devices import tmp275
+from uMux_IF_Chain.uMux_IF.umux_if_board import uMux_IF_Board
 from uMux_IF_Chain.devices import tmp275
 from uMux_IF_Chain.devices import lmx2592
 
@@ -70,7 +70,7 @@ class _GPIO:
     PIN_EEPROM_nWP      = 0x1 << 8
 
 
-class UMux_IF_Rev1:
+class UMux_IF_Rev1(uMux_IF_Board):
     def __init__(self, base_board, chip_select):
         self._cs = chip_select
         self._bb = base_board
@@ -83,7 +83,7 @@ class UMux_IF_Rev1:
         self._delay = 0.0
         self._delay_i2c = 0.0
         self._tmp = tmp275.TMP275(0x48)
-        self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, 100)
+        self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, ref_freq_MHz=100)
 
     def _write(self, data: list[int]) -> None:
         self._bb.stack_write(self._cs, data)
@@ -470,8 +470,8 @@ class UMux_IF_Rev1:
             return None
         fwid_size = ret[1]   # Firmware returns the CID size (96 Bits, 12 bytes, 3 words)
         ret = self._read(fwid_size)
-        self.firmware_id = ret
-        return ret
+        self.firmware_id = bytes(ret).decode("utf8", errors="ignore").rstrip("\x00")
+        return self.firmware_id
 
     def read_CID(self):
         cmd_array = [0x00] * _CMD.CMD_LEN
@@ -496,7 +496,7 @@ class UMux_IF_Rev1:
         if(ret[0] & _RET_VAL.MASK_READ_GOOD != _RET_VAL.MASK_READ_GOOD):
             print("Failed to understand command, RET_VAL is not READ_GOOD")
             return None
-        bsn_size = ret[1]   # Firmware returns the CID size (96 Bits, 12 bytes, 3 words)
+        bsn_size = ret[1]
         ret = self._read(bsn_size)
         self.board_serial_number = ret
         return ret
