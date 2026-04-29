@@ -236,6 +236,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         return ret_array[0]
     
     def stack_hard_reset(self, chip_select: int): raise NotImplementedError
+        ## TODO: This will require adding the functionality to the firmware, the base hooks are there. 
 
     def clk_reference(self, print2console=False) -> str:
         str_to_write = 'CLK:STATus?' # Assemble final string to be sent
