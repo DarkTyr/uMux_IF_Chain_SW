@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 '''
-Module Tyr_Serial_IF
+Module umux_if_rev1
 =================================
-This module is responsible for communicating with any development board
-that contains a tyr command processor.
+This module is responsible for communicating with the Microwave SQUID Multiplexing 
+Intermediate Frequency Conversion Boards located on a Base Board. 
 '''
 # System level imports
 import time
