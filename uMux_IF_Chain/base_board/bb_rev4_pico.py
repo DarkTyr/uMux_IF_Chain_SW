@@ -12,6 +12,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         self.HW_ID = "BB_Rev4_Pico"
         super().__init__(port=port, channel=channel, url=url, doopen=doopen)
         self.get_device_info()
+        self.power_on_delay_s = 2
 
     def i2c_write(self, i2c_addr: int, data_array: list) -> bool: 
         # I2C:WRITE <devAddr>,<numBytes>,<hex bytes...>
@@ -287,7 +288,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
             print("Somethign Went Wrong, Never recieved !OKAY")
             return False
 
-    def read_temp_C(self, print2console) -> list:
+    def read_temp_C(self, print2console=False) -> list:
         self._write("FW:TEMPerature?")
         self._read(wait_end=True, remove_term=True)
 
@@ -299,7 +300,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
 
         return [si_temp, smps_temp]
 
-    def read_temp_F(self, print2console) -> list:
+    def read_temp_F(self, print2console=False) -> list:
         [si_temp, smps_temp] = self.read_temp_C(False)
         si_temp = si_temp * 9/5 + 32
         smps_temp = smps_temp * 9/5 + 32
