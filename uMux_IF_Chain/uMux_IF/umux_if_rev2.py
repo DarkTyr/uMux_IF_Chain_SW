@@ -69,6 +69,7 @@ class _GPIO:
 
 class UMux_IF_Rev2(uMux_IF_Board):
     def __init__(self, base_board, chip_select):
+        self.HW_ID = "uMux_IF_Rev2"
         self._cs = chip_select
         self._bb = base_board
         self._dac_nbits = 14

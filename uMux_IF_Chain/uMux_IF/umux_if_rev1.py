@@ -72,6 +72,7 @@ class _GPIO:
 
 class UMux_IF_Rev1(uMux_IF_Board):
     def __init__(self, base_board, chip_select):
+        self.HW_ID = "uMux_IF_Rev1"
         self._cs = chip_select
         self._bb = base_board
         self._dac_nbits = 14
@@ -516,7 +517,7 @@ class UMux_IF_Rev1(uMux_IF_Board):
         nfields = int(data_len/16)
         text_array = [""] * nfields
         for idx in range(nfields):
-            text_array[idx] = bytes(ret[0+16*idx : 16 + 16*idx]).decode("utf8")
+            text_array[idx] = bytearray(ret[0+16*idx : 16 + 16*idx]).decode("utf8", errors="ignore").strip("\x00")
         self.eeprom = text_array
         if(print_human_readable):
             print("____ uMux_IF_Rev1 ____")
