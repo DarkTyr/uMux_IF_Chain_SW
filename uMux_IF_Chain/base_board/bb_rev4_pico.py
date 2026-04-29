@@ -295,7 +295,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         si_temp, smps_temp = map(float, temps)
 
         if(print2console):
-            print(f"CLK IC Temp = {si_temp} °C  :  Power Supply Temp = {smps_temp} °C ")
+            print(f"CLK IC Temp = {si_temp:.2f} °C  :  Power Supply Temp = {smps_temp:.2f} °C ")
 
         return [si_temp, smps_temp]
 
@@ -305,7 +305,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         smps_temp = smps_temp * 9/5 + 32
 
         if(print2console):
-            print(f"CLK IC Temp = {si_temp} °F  :  Power Supply Temp = {smps_temp} °F ")
+            print(f"CLK IC Temp = {si_temp:.2f} °F  :  Power Supply Temp = {smps_temp:.2f} °F ")
 
         return [si_temp, smps_temp]
 
