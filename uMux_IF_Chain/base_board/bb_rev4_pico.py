@@ -1,4 +1,5 @@
-# from .uMux_IF_BaseBoard import uMux_IF_BaseBoard
+# -*- coding: utf-8 -*-
+
 # Global imports
 import re
 
@@ -317,10 +318,73 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     ##########################################################
     ## TODO: Add Fan PWM control methods
     ##########################################################
+    def fan_pwm_get(self):
+        self._write("FW:FAN:PWM?")
+        self._read(wait_end=True, remove_term=True)
+        print(self.ret_str)
 
-    ##########################################################
-    ## TODO: Add methods to read ADCs and power use
-    ##########################################################
+        ## TODO: Parse and change to a percentage and then print/return that
+        
+
+    def fan_pwm_set(self, pwm_percentage):
+        pwm_max = 255
+        pwm = int(pwm_percentage/100 * pwm_max) & 0xFF
+        self._write("FW:FAN:PWM {PWM}")
+        
+
+    def adc_read_keys(self, print2console=False):
+        self._write("FW:ADC_KEYS?")
+        self._read(wait_end=True, remove_term=False)
+
+        result = {}
+
+        for line in self.ret_str.splitlines():
+            if not line.strip():
+                continue
+            parts = [p.strip() for p in line.split(":")]
+            ch = int(parts[0])
+            name = parts[1]
+            unit = parts[2]
+            result[ch] = {"name": name, "unit": unit}
+        if(print2console):
+            print(result)
+
+        return result
+
+    def adc_read_keys_regex(self, print2console=False):
+        self._write("FW:ADC_KEYS?")
+        self._read(wait_end=True, remove_term=False)
+    
+        pattern = r'(\d+)\s*:\s*([^\:]+?)\s*:\s*([A-Za-z]+)'
+        result = {
+            int(ch): {"name": name.strip(), "unit": unit}
+            for ch, name, unit in re.findall(pattern, self.ret_str)
+        }
+
+        if(print2console):
+            print(result)
+
+        return result
+
+    def adc_read_all(self):
+        self._write("FW:ADC_READ_ALL?")
+        self._read(wait_end=True, remove_term=False)
+        return self.ret_str
+
+    def adc_read_hr(self, print2console=True):
+        self._write("FW:ADC_READ_HR?")
+        self._read(wait_end=True, remove_term=False)
+
+        if(print2console):
+            print(self.ret_str)
+
+    def adc_read_power_hr(self, print2console=True):
+        self._write("FW:ADC_PWR_HR?")
+        self._read(wait_end=True, remove_term=False)
+
+        if(print2console):
+            print(self.ret_str)
+
 
     ##########################################################
     ## TODO: Add methods for Ethernet status
