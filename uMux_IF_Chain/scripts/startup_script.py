@@ -3,12 +3,13 @@
 Script without any form of GUI, used to start up the uMux_IF_Chain and the base board interface.
 '''
 import argparse
+import time
 
 import IPython
 
 # the main classes here
 from uMux_IF_Chain.base_board import umux_if_base_board
-from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
+from uMux_IF_Chain.uMux_IF import umux_if_board
 
 
 
@@ -24,6 +25,7 @@ def main():
     parser.add_argument("--synth_init", help="Initialize the synthesizers", action="store_true", default=False)
     parser.add_argument("--bb_loopback_en", help="Enable baseband loopback", action="store_true", default=False)
     parser.add_argument("--bb_loopback_dis", help="Disable baseband loopback", action="store_true", default=False)
+    parser.add_argument("--power_on", help="Power On the IF_Board Stack if Applicable", action="store_true", default=False)
     args = parser.parse_args()
 
     # Create base board interface class and set debug message level
@@ -41,6 +43,19 @@ def main():
         bb.auto_print = 3
 
     print("")
+    if(args.power_on):
+        cur_state = bb.stack_pwr_get()
+        if(not(cur_state)):
+            if(bb.HW_ID == "BB_Rev4_Pico"):
+                bb.stack_pwr_set(True)
+                time.sleep(bb.power_on_delay_s)
+            else:
+                pass
+        else:
+            pass
+    else:
+        pass
+    print("")
 
     dev_stack = int(args.cards, 16)
 
@@ -54,7 +69,8 @@ def main():
 
     # Instantiate classes for the IF_Boards Rev1
     for i in range(n_ifb):
-        ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
+        # ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
+        ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i)
         if (args.verbosity == 0):
             ifb[i].debug = 0
         elif (args.verbosity == 1):
@@ -122,10 +138,10 @@ def main():
             + "    skip_startup = {}\n".format(args.skip_startup) \
             + "           cards = {}\n".format(dev_stack) \
             + "Defined Classes:\n" \
-            + "        bb = base_board_rev3.Base_Board_Rev3(args.url)\n" \
+            + "        bb = base_board_revX.Base_Board_RevX(args.url)\n" \
             + "     n_ifb = dev_stack.bit_length()\n" \
             + "     for i in range(n_ifb):\n" \
-            + "        ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)\n\n"
+            + "        ifb[i] = uMux_IF_RevX.UMux_IF_RevX(bb, 0x1 << i)\n\n"
         print(banner)
         IPython.start_ipython(argv=[], user_ns=locals())
 
