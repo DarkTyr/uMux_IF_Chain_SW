@@ -19,7 +19,6 @@ import binascii
 from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
 from uMux_IF_Chain.base_board import base_board_rev3
 
-# SYTNH_CONFIG_FILE = '../../HexRegisterValues.txt'
 TICS_FILE = 'HexRegisterValues.txt'
 
 class uMux_IF_Unit_Test:
