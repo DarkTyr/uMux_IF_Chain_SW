@@ -176,8 +176,9 @@ class uMux_IF_BaseBoard:
     def stack_get_dev_stack(self) -> int: raise NotImplementedError
     def stack_hard_reset(self, chip_select: int): raise NotImplementedError
 
-    def enable_periodic_checking(self): raise NotImplementedError
-    def disable_periodic_checking(self): raise NotImplementedError
+    def set_periodic_checking_enable(self): raise NotImplementedError
+    def set_periodic_checking_disable(self): raise NotImplementedError
+    def get_periodic_checking(self):  raise NotImplementedError
     def read_temp_C(self, print2console): raise NotImplementedError
     def read_temp_F(self, print2console): raise NotImplementedError
 
