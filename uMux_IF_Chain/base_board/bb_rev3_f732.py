@@ -1,4 +1,11 @@
+# -*- coding: utf-8 -*-
+'''
+Module bb_rev3_f732
+=================================
+This module is responsible for communicating the Base Board Rev3
+containing the ST Microelectronics F732 Firmware.
 
+'''
 from uMux_IF_Chain.base_board import umux_if_base_board
 from uMux_IF_Chain.devices import tmp275
 
@@ -11,7 +18,7 @@ class BB_Rev3_F732(umux_if_base_board.uMux_IF_BaseBoard):
         self.tmp_center.link_methods(self.i2c_write, self.i2c_write_read)
         self.tmp_power_converter = tmp275.TMP275(0x49)
         self.tmp_power_converter.link_methods(self.i2c_write, self.i2c_write_read)
-        
+
     def clk_reference(self) -> str:
         str_to_write = 'I2C:SI_LOCK?' # Assemble final string to be sent
         self._write(str_to_write)

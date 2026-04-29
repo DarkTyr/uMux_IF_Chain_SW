@@ -165,31 +165,51 @@ class uMux_IF_BaseBoard:
             print('\t' + self.fw_version)
             print('\t' + self.fw_timestamp)
         
+    # Method prototypes for consistency accross multiple boards
     def i2c_write(self, i2c_addr: int, data_array: list) -> bool: raise NotImplementedError
+
     def i2c_write_read(self, i2c_addr: int, nbytes_read: int, data_array: list) -> list: raise NotImplementedError
+
     def i2c_read(self, i2c_addr: int, num_bytes: int) -> list: raise NotImplementedError
+
     def i2c_scan_addr(self) -> list: raise NotImplementedError
+
 
     def clk_reference(self, print2console) -> str: raise NotImplementedError
 
+
     def stack_write(self, chip_select: int, data_array: list) -> bool: raise NotImplementedError
+
     def stack_write_read(self, chip_select: int, nbytes_read: int, data_array: list) -> list: raise NotImplementedError
+
     def stack_read(self, chip_select: int, num_bytes: int) -> list: raise NotImplementedError
+
     def stack_get_dev_stack(self) -> int: raise NotImplementedError
+
     def stack_hard_reset(self, chip_select: int): raise NotImplementedError
 
+
     def set_periodic_checking_enable(self): raise NotImplementedError
+
     def set_periodic_checking_disable(self): raise NotImplementedError
+
     def get_periodic_checking(self): raise NotImplementedError
+
     def read_temp_C(self, print2console): raise NotImplementedError
+
     def read_temp_F(self, print2console): raise NotImplementedError
 
 
+
+# Local imports for the open_uMux_IF_BaseBoard() function. 
 from uMux_IF_Chain.base_board import bb_rev3_f732
 from uMux_IF_Chain.base_board import bb_rev4_pico
 
+# Function to determine which booard is present and map it to which class to 
+# instantiate. 
 def open_uMux_IF_BaseBoard(port = None, channel = None, url = None, doopen = True):
-    base = uMux_IF_BaseBoard(port=port, channel=channel, url=url, doopen=doopen)
+    # We have to open the connection and talk to the board to get the firmware identity.
+    base = uMux_IF_BaseBoard(port=port, channel=channel, url=url, doopen=True)
     base.get_device_info()
     base.close()
 
