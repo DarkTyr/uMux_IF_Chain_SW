@@ -313,3 +313,14 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     ## TODO: Add file handling methods here to list, write, read, the files on the internal file system
     ##########################################################
 
+    ##########################################################
+    ## TODO: Add Fan PWM control methods
+    ##########################################################
+
+    ##########################################################
+    ## TODO: Add methods to read ADCs and power use
+    ##########################################################
+
+    ##########################################################
+    ## TODO: Add methods for Ethernet status
+    ##########################################################
