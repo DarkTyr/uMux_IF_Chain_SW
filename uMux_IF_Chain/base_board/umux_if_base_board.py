@@ -119,6 +119,8 @@ class uMux_IF_BaseBoard:
             self.ret_str = self._read_line(remove_term=remove_term)
             if self.ret_str.startswith("!ERR"):
                 raise CommError(self.ret_str)
+            if self.ret_str.startswith("ERROR"):
+                raise CommError(self.ret_str)
             return self.ret_str
 
         # Multi-line mode
