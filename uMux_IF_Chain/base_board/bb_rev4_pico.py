@@ -300,7 +300,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         return [si_temp, smps_temp]
 
     def read_temp_F(self, print2console) -> list:
-        [si_temp, smps_temp] = self.read_temp_C()
+        [si_temp, smps_temp] = self.read_temp_C(False)
         si_temp = si_temp * 9/5 + 32
         smps_temp = smps_temp * 9/5 + 32
 
