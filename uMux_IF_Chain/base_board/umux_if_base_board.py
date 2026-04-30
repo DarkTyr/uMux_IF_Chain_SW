@@ -42,56 +42,64 @@ class uMux_IF_BaseBoard:
         return list(bytes.fromhex(stringData))
         
     def _write(self, str_in: str):
-        '''Write to the Serial com port'''
-        #clear previous transaction status
+        """Write to the Serial com port"""
+
+        # Clear previous transaction status
         self.rcvd_str = ''
 
-        #Append the termination character self._termination
+        # Append termination
         self.sent_str = str_in + self._termination
+        data = self.sent_str.encode()
 
-        #write to the serial interface and then compare the number of bytes sent
-        if(self.auto_print > 0):
-            print(self.sent_str.encode())
-        self.ret_int = self.com.fd.write(self.sent_str.encode())
+        if(self.auto_print > 1):
+            print(data)
 
-        #check length
-        if(self.ret_int != len(self.sent_str)):
-            CommError("\tCRIT ERROR: Failed to send all of the bytes within the timeout period!!")
+        # Write to serial
+        bytes_written = self.com.fd.write(data)
+        self.com.fd.flush()
 
-        ## If the command is a valid command, the device will send back "!RCVD"
-        self.rcvd_str = self._read() # _read_line handles the auto_print
-        if(self.rcvd_str != "!RCVD"):
-            CommError("ERROR: Firmware didn't understand the sent command: \n\tsent_str: " + 
-                           self.sent_str + "\n\trcvd_str: " + self.rcvd_str)
-            return
+        # Validate full write
+        if(bytes_written != len(data)):
+            raise CommError(
+                f"CRIT ERROR: Incomplete write "
+                f"({bytes_written}/{len(data)} bytes sent)"
+            )
+
+        try:
+            rcvd = self._read()
+        except CommError as e:
+            raise CommError(f"Write succeeded but read failed: {self.sent_str}") from e
+        
+        if(rcvd != "!RCVD"):
+            raise CommError(
+                "Firmware didn't understand command:\n"
+                f"  sent: {self.sent_str}\n"
+                f"  recv: {rcvd}"
+            )
+
+        self.rcvd_str = rcvd
+        return rcvd
 
     def _read_line(self, remove_term: bool = True):
-        """Read exactly one line with auto EOL detection and optional removal of line terminations"""
-
-        if(self.auto_print > 2):
-            print(f"self._read_line(remove_term={remove_term})")
+        if self.auto_print > 2:
+            print(f"umux_if_base_board._read_line(remove_term={remove_term})")
 
         buf = bytearray()
 
         while True:
             ch = self.com.fd.read(1)
+
             if not ch:
-                break  # timeout or disconnect
+                raise CommError("Communication Timed Out")
 
             buf += ch
 
-            # Detect termination
-            if ch in (b'\n', b'\r'):
-                # Handle CRLF
-                if ch == b'\r':
-                    # Read another ot get the \n
+            if(ch in (b'\n', b'\r')):
+                if(ch == b'\r'):
                     nxt = self.com.fd.read(1)
-                    # Being as the interface doens't throw an exception if it times out.
-                    # This is the only way to determine if it timed out, unless we run
-                    # our own timer. 
-                    if(nxt == b''):
-                        CommError("Communication Timed Out")
-                    if nxt == b'\n':
+                    if(not nxt):
+                        raise CommError("Communication Timed Out")
+                    if(nxt == b'\n'):
                         buf += nxt
                 break
 
@@ -109,39 +117,42 @@ class uMux_IF_BaseBoard:
         return raw
 
     def _read(self, wait_end: bool = False, remove_term: bool = True):
-        """Read either a single line or a multi-line block terminated by !END."""
-
         if(self.auto_print > 2):
-            print(f"self._read(wait_end={wait_end}, remove_term={remove_term})")
+            print(f"umux_if_base_board._read(wait_end={wait_end}, remove_term={remove_term})")
 
-        if not wait_end:
-            # Simple single-line read
-            self.ret_str = self._read_line(remove_term=remove_term)
-            if self.ret_str.startswith("!ERR"):
-                raise CommError(self.ret_str)
-            if self.ret_str.startswith("ERROR"):
-                raise CommError(self.ret_str)
-            return self.ret_str
+        if(not wait_end):
+            line = self._read_line(remove_term=remove_term)
+
+            if line.startswith(("!ERR", "ERROR")):
+                raise CommError(line)
+
+            self.ret_str = line
+            return line
 
         # Multi-line mode
-        lines = ""
+        lines = []
+
         while True:
             line = self._read_line(remove_term=remove_term)
+
             if(self.auto_print > 2):
                 print(f"_read() line = {line}")
 
-            if self.ret_str.startswith("!ERR"):
-                raise CommError(self.ret_str)
-            
+            if line.startswith(("!ERR", "ERROR")):
+                raise CommError(line)
+
             if(line.startswith("!END")):
                 break
-            lines += line
-        
-        if(self.auto_print > 2):
-            print(f"_read() lines = {lines}")
 
-        self.ret_str = lines
-        return self.ret_str
+            lines.append(line)
+
+        result = "".join(lines)
+
+        if(self.auto_print > 2):
+            print(f"_read() lines = {result}")
+
+        self.ret_str = result
+        return result
 
     def get_device_info(self, print2console=False):
         self._write("*IDN?")
@@ -209,17 +220,21 @@ from uMux_IF_Chain.base_board import bb_rev4_pico
 
 # Function to determine which booard is present and map it to which class to 
 # instantiate. 
-def open_uMux_IF_BaseBoard(port = None, channel = None, url = None, doopen = True):
+def open_uMux_IF_BaseBoard(port=None, channel=None, url=None, doopen=True, hw_id=None):
     # We have to open the connection and talk to the board to get the firmware identity.
-    base = uMux_IF_BaseBoard(port=port, channel=channel, url=url, doopen=True)
-    base.get_device_info()
-    base.close()
-
-    if "BB_Rev4_Pico" in base.fw_identity:
+    if(hw_id==None):
+        base = uMux_IF_BaseBoard(port=port, channel=channel, url=url, doopen=True)
+        base.get_device_info()
+        base.close()
+        id = base.fw_identity
+    else:
+        id = hw_id
+    
+    if "BB_Rev4_Pico" in id:
         return bb_rev4_pico.BB_Rev4_Pico(port=port, channel=channel, url=url, doopen=doopen)
 
-    if "BB_Rev3_F732" in base.fw_identity:
+    if "BB_Rev3_F732" in id:
         return bb_rev3_f732.BB_Rev3_F732(port=port, channel=channel, url=url, doopen=doopen)
 
-    raise RuntimeError(f"Unknown hardware type: {base.fw_identity}")
+    raise RuntimeError(f"Unknown hardware type: {id}")
 
