@@ -237,8 +237,14 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         ret_array = self._strHextoByteArrayList(self.ret_str_data)
         return ret_array[0]
     
-    def stack_hard_reset(self, chip_select: int): raise NotImplementedError
-        ## TODO: This will require adding the functionality to the firmware, the base hooks are there. 
+    def stack_hard_reset(self, chip_select: int):
+        cs_str  = self._byteArrayToStrHex([chip_select])
+        self._write("STACK:HARD_RESET {cs_str}")
+        
+        self._read()
+        if(not(self.ret_str.startswith("!OKAY"))):
+            CommError("\tERROR: SPI_Read Failed : " + self.ret_str)
+        return
 
     def clk_reference(self, print2console=False) -> str:
         str_to_write = 'CLK:STATus?' # Assemble final string to be sent
@@ -315,9 +321,6 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     ## TODO: Add file handling methods here to list, write, read, the files on the internal file system
     ##########################################################
 
-    ##########################################################
-    ## TODO: Add Fan PWM control methods
-    ##########################################################
     def fan_pwm_get(self):
         self._write("FW:FAN:PWM?")
         self._read(wait_end=True, remove_term=True)
