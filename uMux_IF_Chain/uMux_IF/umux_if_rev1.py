@@ -86,17 +86,6 @@ class UMux_IF_Rev1(uMux_IF_Board):
         self._tmp = tmp275.TMP275(0x48)
         self._lmx = lmx2592.LMX2592(self._synth_write_array, self._synth_read_array, ref_freq_MHz=100)
 
-    def _write(self, data: list[int]) -> None:
-        self._bb.stack_write(self._cs, data)
-        if(self.debug):
-            print("uMux_IF_Rev1._write(): _cs={} data={}".format(self._cs, data))
-
-    def _read(self, nBytes: int) -> list[int]:
-        ret = self._bb.stack_read(self._cs, nBytes)
-        if(self.debug):
-            print("uMux_IF_Rev1._read():  _cs={} nBytes={} ret={}".format(self._cs, nBytes, ret))
-        return ret
-
     def _write_read(self, nBytes_read: int, data: list[int]) -> list[int]:
         ret = self._bb.stack_write_read(self._cs, nBytes_read, data)
         if(self.debug):
