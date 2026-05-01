@@ -28,6 +28,8 @@ class uMux_IF_BaseBoard:
 
         if doopen: 
             self.open()
+        
+        self._purl = self.com.purl  # Save a copy of the parsed URL data so that a connection could be remade..
 
     def open(self):
         self.com.open()
@@ -68,7 +70,7 @@ class uMux_IF_BaseBoard:
         try:
             rcvd = self._read()
         except CommError as e:
-            raise CommError(f"Write succeeded but read failed: {self.sent_str} : {self.ret_str}") from e
+            raise CommError(f"Write succeeded but read failed: {self.sent_str}") from e
         
         if(rcvd != "!RCVD"):
             raise CommError(
