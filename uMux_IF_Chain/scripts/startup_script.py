@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 Script without any form of GUI, used to start up the uMux_IF_Chain and the base board interface.
+Has had additions to allow command line interactions with the hardware rather than using a GUI. 
 '''
 import argparse
 import time
@@ -10,7 +11,6 @@ import IPython
 # the main classes here
 from uMux_IF_Chain.base_board import umux_if_base_board
 from uMux_IF_Chain.uMux_IF import umux_if_board
-
 
 
 def main():
@@ -33,14 +33,8 @@ def main():
     if (~args.skip_startup == False):
         bb.get_device_info(print2console=True)
 
-    if (args.verbosity == 0):
-        bb.auto_print = 0
-    elif (args.verbosity == 1):
-        bb.auto_print = 1
-    elif (args.verbosity == 2):
-        bb.auto_print = 2
-    elif (args.verbosity == 3):
-        bb.auto_print = 3
+
+    bb.auto_print = args.verbosity
 
     print("")
     if(args.power_on):
@@ -71,12 +65,9 @@ def main():
     for i in range(n_ifb):
         # ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
         ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i)
-        if (args.verbosity == 0):
-            ifb[i].debug = 0
-        elif (args.verbosity == 1):
-            ifb[i].debug = 1
-        elif (args.verbosity == 2):
-            ifb[i].debug = 2
+        print(f"    Found {ifb[i].HW_ID}")
+        ifb[i].debug = args.verbosity
+
 
     # Check for synth_init argument and initialize the synthesizers
     if (args.synth_init == True):
