@@ -12,7 +12,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     def __init__(self, port=None, channel=None, url=None, doopen=True):
         self.HW_ID = "BB_Rev4_Pico"
         super().__init__(port=port, channel=channel, url=url, doopen=doopen)
-        self.get_device_info()
+        # self.get_device_info()
         self.power_on_delay_s = 3   # Required time for the IF_Boards to boot. 
 
     def i2c_write(self, i2c_addr: int, data_array: list) -> bool: 
