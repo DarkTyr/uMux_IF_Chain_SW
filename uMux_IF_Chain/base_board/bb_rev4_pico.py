@@ -283,7 +283,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
             return False
 
     def get_periodic_checking(self) -> bool:
-        self.write("FW:PERiodic ?")
+        self._write("FW:PERiodic ?")
         state = self._read()    # Read the state
         self._read()            # Read the !OKAY
         if(self.ret_str.startswith("!OKAY")):
