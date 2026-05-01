@@ -75,6 +75,8 @@ class UMux_IF_Rev1(uMux_IF_Board):
         self.HW_ID = "uMux_IF_Rev1"
         self._cs = chip_select
         self._bb = base_board
+        super().__init__(base_board=self._bb, chip_select=self._cs)
+        
         self._dac_nbits = 14
         self.debug = 0
         self.firmware_id = []
