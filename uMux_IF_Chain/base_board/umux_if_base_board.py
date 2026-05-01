@@ -52,7 +52,7 @@ class uMux_IF_BaseBoard:
         data = self.sent_str.encode()
 
         if(self.auto_print > 1):
-            print(data)
+            print(f"umux_if_base_board._write({data})")
 
         # Write to serial
         bytes_written = self.com.fd.write(data)
@@ -68,7 +68,7 @@ class uMux_IF_BaseBoard:
         try:
             rcvd = self._read()
         except CommError as e:
-            raise CommError(f"Write succeeded but read failed: {self.sent_str}") from e
+            raise CommError(f"Write succeeded but read failed: {self.sent_str} : {self.ret_str}") from e
         
         if(rcvd != "!RCVD"):
             raise CommError(
@@ -89,8 +89,8 @@ class uMux_IF_BaseBoard:
         while True:
             ch = self.com.fd.read(1)
 
-            if not ch:
-                raise CommError("Communication Timed Out")
+            # if not ch:
+            #     raise CommError("Communication Timed Out")
 
             buf += ch
 
