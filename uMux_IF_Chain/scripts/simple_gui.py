@@ -219,8 +219,9 @@ def main():
 
     if(args.test == False):
         # Create base board interface class and set debug message level
+        print(f"device URL = {args.url}")
         bb = umux_if_base_board.open_uMux_IF_BaseBoard(url=args.url)
-        bb.get_device_info(True)
+        bb.get_device_info(False)
 
         if(bb.HW_ID == "BB_Rev4_Pico"):
             cur_state = bb.stack_pwr_get()
@@ -271,7 +272,6 @@ def main():
             print(text)    # saved inside the class
 
             ifb[i].read_CID()
-            # text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
             text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
             print(text)
 
