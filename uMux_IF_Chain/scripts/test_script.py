@@ -16,8 +16,8 @@ import tqdm
 import binascii
 
 # the main classes here
-from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
-from uMux_IF_Chain.base_board import base_board_rev3
+from uMux_IF_Chain.base_board import umux_if_base_board
+from uMux_IF_Chain.uMux_IF import umux_if_board
 
 TICS_FILE = 'HexRegisterValues.txt'
 
@@ -32,6 +32,21 @@ class uMux_IF_Unit_Test:
         self.dac_list = [0, 1, 1000, 1024, 2042, 2048, 4090, 4096, 8192, 16383,
                          1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000, 15000, 16000,
                          8192] # leave the dacs at mid scale, like on true power cycle
+        
+    def test_pwr_stack(self, base_board):
+        # Wrapped in a try except because the Rev1 doesn't have this feature
+        try:
+            # Get the current state of the stack power
+            state = base_board.stack_pwr_get()
+            if(state):
+                # if stack is powered, turn it off and then back on
+                base_board.stack_pwr_set(False)
+                time.sleep(base_board.power_on_delay_s)
+            
+            base_board.stack_pwr_set(True)
+            time.sleep(base_board.power_on_delay_s)
+        except:
+            return "N/A - Feature Not Supported"
 
     def test_bb_loopback_enable(self, if_board):
         if_board.base_band_loop_back_enable()
@@ -176,10 +191,10 @@ class uMux_IF_Unit_Test:
     def long_data_check(self, bb, ifb, itter, nBytes, inner_itter):
         print("long_data_check(itter={}, nBytes={}, inner_itter={})".format(itter, nBytes, inner_itter))
         # turn off debug message from bb class
-        bb.auto_print = 0
+        # bb.auto_print = 0
         for i in ifb:
             # turn off all debug messages
-            i.debug = 0
+            # i.debug = 0
             # Add class parameter to track failed data
             i.data_fail = 0
 
@@ -229,7 +244,7 @@ class uMux_IF_Unit_Test:
             ifb[i].test_results.append(text)
 
             ifb[i].read_FWID()
-            text = 'firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8")
+            text = 'firmware_id : ' + ifb[i].firmware_id
             ifb[i].test_results.append(text)
             print(text)    # saved inside the class
 
@@ -239,7 +254,7 @@ class uMux_IF_Unit_Test:
             print('unique_id in hex: ' + text)
 
             ifb[i].read_BSN()
-            text = 'board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8")
+            text = 'board_serial_number : ' + ifb[i].board_serial_number
             ifb[i].test_results.append(text)
             print(text)
 
@@ -249,12 +264,13 @@ class uMux_IF_Unit_Test:
                 ifb[i].test_results.append(text)
                 print(text)  # saved inside the class
 
-    def run_test_suite(self, bb, ifb):
+    def run_test_suite(self, bb:umux_if_base_board, ifb:umux_if_board):
         for x in ifb:
             # If the class doesn't have a variable to hold test results, add one
             if(not hasattr(x, 'test_results')):
                 x.test_results = []
 
+            x.test_results.append(self.test_pwr_stack(bb))
             x.test_results.append(self.test_bb_loopback_enable(x))
             x.test_results.append(self.test_bb_loopback_disable(x))
             x.test_results.append(self.test_synth_init(x))
@@ -284,8 +300,9 @@ def main():
     args = parser.parse_args()
     
     # Create base board interface class and set debug message level
-    bb = base_board_rev3.Base_Board_Rev3(url=args.url)
+    bb = umux_if_base_board.open_uMux_IF_BaseBoard(url=args.url)
     bb.get_device_info()
+
     if(args.verbosity == 0):
         bb.auto_print = 0
     elif(args.verbosity == 1):
@@ -295,21 +312,27 @@ def main():
 
     print("")
 
+    if(bb.HW_ID != "BB_Rev3_F732"):
+        print("Waiting for IF_Board Stack Power On")
+        bb.stack_pwr_set(False)
+        time.sleep(1)
+        bb.stack_pwr_set(True)
+        
+        time.sleep(bb.power_on_delay_s)
+
     # Determine what IF_Boards Rev1 are present
-    dev_stack = bb.spi_get_dev_stack()
+    dev_stack = bb.stack_get_dev_stack()
     print("DEV_STACK : 0x" + hex(dev_stack).upper()[2:])
+
     n_ifb = dev_stack.bit_length()
     ifb = [0x00] * n_ifb
 
     # Instantiate classes for the IF_Boards Rev1
-    for i in range(dev_stack.bit_length()):
-        ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
-        if(args.verbosity == 0):
-            ifb[i].debug = 0
-        elif(args.verbosity == 1):
-            ifb[i].debug = 1
-        elif(args.verbosity == 2):
-            ifb[i].debug = 2
+    for i in range(n_ifb):
+        # ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
+        ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i)
+        print(f"    Found {ifb[i].HW_ID}")
+        ifb[i].debug = args.verbosity
         # Not a fan of adding an array to each class, but here we are
         ifb[i].test_results = []     
 
