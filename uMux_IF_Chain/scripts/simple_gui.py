@@ -1,5 +1,4 @@
-
-from sre_parse import State
+# -*- coding: utf-8 -*-
 import tkinter as tk
 import time
 
@@ -13,8 +12,8 @@ import time
 import binascii
 
 # the main classes here
-from uMux_IF_Chain.uMux_IF import uMux_IF_Rev1
-from uMux_IF_Chain.base_board import base_board_rev3
+from uMux_IF_Chain.base_board import umux_if_base_board
+from uMux_IF_Chain.uMux_IF import umux_if_board
 
 # Indexes for the main array hiolding all of the sliders
 IDX_STRINGVAR = 1
@@ -220,8 +219,20 @@ def main():
 
     if(args.test == False):
         # Create base board interface class and set debug message level
-        bb = base_board_rev3.Base_Board_Rev3(url=args.url)
-        bb.get_device_info()
+        bb = umux_if_base_board.open_uMux_IF_BaseBoard(url=args.url)
+        bb.get_device_info(True)
+
+        if(bb.HW_ID == "BB_Rev4_Pico"):
+            cur_state = bb.stack_pwr_get()
+            if(not(cur_state)):
+                bb.stack_pwr_set(True)
+                print(f"  Waiting {bb.power_on_delay_s} seconds for stack power on")
+                time.sleep(bb.power_on_delay_s)
+            else:
+                pass
+        else:
+            pass
+
         if(args.verbosity == 0):
             bb.auto_print = 0
         elif(args.verbosity == 1):
@@ -229,20 +240,18 @@ def main():
         elif(args.verbosity == 2):
             bb.auto_print = 2
         
-        # Determine what IF_Boards Rev1 are present
-        dev_stack = bb.spi_get_dev_stack()
+        dev_stack = bb.stack_get_dev_stack()
         print("DEV_STACK : 0x" + hex(dev_stack).upper()[2:])
         n_ifb = dev_stack.bit_length()
         ifb = [0x00] * n_ifb
+
         # Instantiate classes for the IF_Boards Rev1
-        for i in range(dev_stack.bit_length()):
-            ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
-            if(args.verbosity == 0):
-                ifb[i].debug = 0
-            elif(args.verbosity == 1):
-                ifb[i].debug = 1
-            elif(args.verbosity == 2):
-                ifb[i].debug = 2
+        for i in range(n_ifb):
+            # ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
+            ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i)
+            print(f"    Found {ifb[i].HW_ID}")
+            ifb[i].debug = args.verbosity
+
         
         print("__Base Board Information__")
         print(bb.fw_identity)
@@ -258,15 +267,16 @@ def main():
             print(text)
 
             ifb[i].read_FWID()
-            text = 'firmware_id : ' + bytes(ifb[i].firmware_id).decode("utf8")
+            text = 'firmware_id : ' + ifb[i].firmware_id
             print(text)    # saved inside the class
 
             ifb[i].read_CID()
+            # text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
             text = 'unique_id in hex: ' + binascii.hexlify(bytes(ifb[i].unique_id), sep=",", bytes_per_sep=4).decode("utf8")
-            print('unique_id in hex: ' + text)
+            print(text)
 
             ifb[i].read_BSN()
-            text = 'board_serial_number : ' + bytes(ifb[i].board_serial_number).decode("utf8")
+            text = 'board_serial_number : ' + ifb[i].board_serial_number
             print(text)
 
             ifb[i].read_eeprom()
