@@ -291,6 +291,10 @@ class UMux_IF_Rev1(uMux_IF_Board):
         return self._lmx.powerdown_get()
 
     def synth_reg_dump(self, print_to_console_only = False):
+        '''
+        Reads 
+        print("REG : {} = 0x{:02X}{:02X}".format(i[0], i[1], i[2]))
+        '''
         cmd_array = [0x00] * _CMD.CMD_LEN
         cmd_array[0] = (_CMD.SYNTH_REG_DUMP << 1) | _CMD.R
         self._write(cmd_array)
@@ -490,8 +494,8 @@ class UMux_IF_Rev1(uMux_IF_Board):
             return None
         bsn_size = ret[1]
         ret = self._read(bsn_size)
-        self.board_serial_number = ret
-        return ret
+        self.board_serial_number = bytes(ret).decode("utf8", errors="ignore").rstrip("\x00")
+        return self.board_serial_number
 
     def read_eeprom(self, print_human_readable=False):
         cmd_array = [0x00] * _CMD.CMD_LEN
@@ -504,18 +508,19 @@ class UMux_IF_Rev1(uMux_IF_Board):
             return None
         eeprom_size = ret[1]
         ret = self._read(eeprom_size)
-        data_len = len(ret)
-        nfields = int(data_len/16)
-        text_array = [""] * nfields
-        for idx in range(nfields):
-            text_array[idx] = bytearray(ret[0+16*idx : 16 + 16*idx]).decode("utf8", errors="ignore").strip("\x00")
-        self.eeprom = text_array
+        
+        # Convert list of ints → bytes → ASCII string
+        ascii_str = bytes(ret).decode("ascii", errors="ignore")
+
+        # Break into 16‑character chunks
+        self.eeprom = [ascii_str[i:i+16] for i in range(0, len(ascii_str), 16)]
+
         if(print_human_readable):
             print("____ uMux_IF_Rev1 ____")
             print("CS = 0x{:02X}".format(self._cs))
-            for idx in range(nfields):
-                print("  " + text_array[idx])
-        return text_array
+            for c in self.eeprom:
+                print("  " + c)
+        return self.eeprom
 
     def _write_eeprom(self, bsn, mcu_pn, freq_range, mixer_pn, synth_pn, bb_pn, lo_leak_pn):
         if(len(bsn) > 16):
