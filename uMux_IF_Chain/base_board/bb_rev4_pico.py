@@ -2,6 +2,10 @@
 
 # Global imports
 import re
+import time
+#   For file uploading and downloading
+import base64
+import os
 
 # Local Library Imports
 from uMux_IF_Chain.base_board import umux_if_base_board
@@ -394,6 +398,110 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     ##########################################################
     ## TODO: Add file handling methods here to list, write, read, the files on the internal file system
     ##########################################################
+    def file_list(self)-> list:
+        '''
+        Method that returns a list of tuples. Each tuple is the filename and then the size in bytes.
+        '''
+        self._write("FILE:LIST?")
+        self._read(wait_end=True, remove_term=False)
+
+        result = []
+        for line in self.ret_str.strip().splitlines():
+            if not line:
+                continue
+            name, size = line.split(",")
+            result.append((name, int(size)))
+        
+        if(self.auto_print):
+            print(result)
+
+        return result
+
+    def file_upload(self, local_name:str, remote_name:str) -> bool:
+        '''
+        Sends a file to the device file system from the host communicating system.
+        Says name, but can be paths for either.  
+        '''
+        size_bytes = os.path.getsize(local_name)
+        self._write(f"FILE:WRITE {remote_name},{size_bytes}")
+        self._read()  # Should return okay, but we are not going to check.
+
+        with open(local_name, "rb") as f:
+            while True:
+                chunk = f.read(64)
+                if not chunk:
+                    break
+                b64 = base64.b64encode(chunk).decode()
+                self._write(f"FILE:DATA {b64}")
+                self._read(wait_end=False)
+            # While
+        # with
+
+        self._write(f"FILE:END")
+        self._read(wait_end=True)
+        
+        if(self.ret_str.startswith("!OKAY")):
+            return True
+        else:
+            return False
+
+    def file_download(self, remote_name:str, local_name:str) -> bool:
+        '''
+        Downloads a file from the device to the host communicating system
+        '''
+        self._write(f"FILE:READ? {remote_name}")
+        self._read(wait_end=False)
+
+        ret = self.ret_str.split(' : ')
+
+        if(ret[0].startswith("!SIZE")):
+            size_bytes = int(ret[1])
+            print(f"  File Size in Bytes : {size_bytes}")
+        else:
+            raise CommError(f"Unexpected Returned String : {self.ret_str}")
+
+        received_bytes = 0
+
+        with open(local_name, "wb")as out:
+            while True:
+                line = self._read()
+                if(line.startswith("!END")):
+                    break
+
+                chunk = base64.b64decode(line)
+                out.write(chunk)
+                received_bytes += len(chunk)
+            # While
+        # With
+
+        print(f"Downloaded {received_bytes}/{size_bytes} Bytes")
+
+        if(received_bytes == size_bytes):
+            return True
+        else:
+            return False
+        
+    def file_remove(self, remote_name)-> bool:
+        '''
+        Deletes a file that matches the provided name. 
+        remote_name can be a file path on the device. 
+        '''
+        self._write(f"FILE:RM {remote_name}")
+        self._read(wait_end=True)
+        if(self.ret_str.startswith("!OKAY")):
+            return True
+        else:
+            return False
+
+    def file_space(self)-> str:
+        '''
+        The device returns a series of terminated strings showing Total, Used, Free
+        in bytes.
+        '''
+        self._write(f"FILE:SPACE?")
+        self._read(wait_end=True, remove_term=False)
+        return self.ret_str
+
 
     def fan_pwm_get(self):
         self._write("FW:FAN:PWM?")
