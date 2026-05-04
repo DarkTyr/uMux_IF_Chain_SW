@@ -179,7 +179,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         data_str = self._byteArrayToStrHex(data_array)
 
         # Construct the main string to write to the VCP device
-        str_to_write = f'STACK:WRITE_READ {cs_str},{write_size_str},{read_size_str},{data_str}'
+        str_to_write = f'STACK:WRRD {cs_str},{write_size_str},{read_size_str},{data_str}'
         self._write(str_to_write)
 
         # Read back the return value from the interface
