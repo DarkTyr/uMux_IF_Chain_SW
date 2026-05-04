@@ -264,6 +264,80 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         else:
             return self.ret_str
     
+    def clk_read(self, addr_page:int) -> int:
+        '''
+        addr_page should be a 16 bit number that contains the page and register address (each 1 byte)
+        '''
+        addr = int(addr_page)
+        self._write(f"CLK:READ {addr}")
+        self._read(wait_end=True)
+        return int(self._ret_str, 16)
+    
+    def clk_write(self, addr_page, val)-> bool:
+        '''
+        addr_page should be a 16 bit number that contains the page and register address (each 1 byte)
+        '''
+        addr = int(addr_page)
+        value = int(val)
+        self._write(f"CLK:WRITE {addr}, {value}")
+        self._read()  # Should be !OKAY
+        if(self.ret_str.startswith("!OKAY")):
+            return True
+        else:
+            return False  # Though it should never get here
+
+    def clk_parse_and_program(self, filename):
+        '''
+        This method reads in an exported file from ClockBuilder Pro (CBPro) from Skyworks.
+        The configuration will need to be exported as a "Register File" with the summary header
+        and include pre- and post-write control register writes checked. The radial for CSV
+        should be selected as well. This is intended to allow the changing of the config via software
+        and was used initialy to test the interfaces before file uploading existed.
+        - The Si5344 must have an i2c address of 0x69  (Which means bits {6,5,3} are high, else low)
+        - the project file is with the PCB Altium folder
+        '''
+        cnt = 0
+        with open(filename, "r") as f:
+            for line in f:
+                line = line.strip()
+
+                # Skip blank lines and comments
+                if not line or line.startswith("#"):
+                    continue
+
+                # Skip CSV header
+                if line.lower().startswith("address"):
+                    continue
+
+                # Expect lines like: 0x0B24,0xC0
+                if "," not in line:
+                    continue
+
+                addr_str, val_str = line.split(",", 1)
+                addr_str = addr_str.strip()
+                val_str = val_str.strip()
+
+                # Validate hex format
+                if not (addr_str.startswith("0x") and val_str.startswith("0x")):
+                    continue
+
+                # Convert
+                addr = int(addr_str, 16) & 0xFFFF
+                val  = int(val_str, 16) & 0xFF
+
+                # Format SCPI command
+
+                self.clk_write(addr, val)
+
+                cnt += 1
+                if(cnt == 3):
+                    # This is needed for the device to fully reset into a known initial state
+                    time.sleep(0.75)
+            # For
+        # With
+        print(f"BB_Rev4_Pico.clk_parse_and_program({filename}) complete")
+        print(f"    Total registers written: {cnt}")
+
     def set_periodic_checking_enable(self) -> bool:
         self._write("FW:PERiodic EN")
         self._read()
