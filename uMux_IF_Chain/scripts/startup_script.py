@@ -42,6 +42,7 @@ def main():
             cur_state = bb.stack_pwr_get()
             if(not(cur_state)):
                 bb.stack_pwr_set(True)
+                print(f"  Waiting {bb.power_on_delay_s} seconds for stack power on")
                 time.sleep(bb.power_on_delay_s)
             else:
                 pass
