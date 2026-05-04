@@ -25,7 +25,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         hex_addr = self._byteArrayToStrHex([i2c_addr])
         data_str = self._byteArrayToStrHex(data_array)
 
-        str_to_write = 'I2C:WRITE:' + hex_addr + "," + write_size_str + ',' + data_str
+        str_to_write = 'I2C:WRITE ' + hex_addr + "," + write_size_str + ',' + data_str
 
         self._write(str_to_write)
 
@@ -46,7 +46,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         read_size_str = self._byteArrayToStrHex([nbytes_read])
         data_str = self._byteArrayToStrHex(data_array)
 
-        str_to_write = 'I2C:WRRD:' + hex_addr + "," + write_size_str + ',' + read_size_str + ',' + data_str
+        str_to_write = 'I2C:WRRD ' + hex_addr + "," + write_size_str + ',' + read_size_str + ',' + data_str
 
         self._write(str_to_write)
 
@@ -70,7 +70,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         read_size_str = self._byteArrayToStrHex([nbytes_read])
         data_str = self._byteArrayToStrHex(data_array)
 
-        str_to_write = 'I2C:WRRD:' + hex_addr + "," + write_size_str + ',' + read_size_str + ',' + data_str
+        str_to_write = 'I2C:WRRD_NRP' + hex_addr + "," + write_size_str + ',' + read_size_str + ',' + data_str
 
         self._write(str_to_write)
 
@@ -90,7 +90,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         hex_addr = self._byteArrayToStrHex([i2c_addr])
         read_size_str = self._byteArrayToStrHex([num_bytes])
 
-        str_to_write = 'I2C:WRRD:' + hex_addr + "," + read_size_str
+        str_to_write = 'I2C:READ' + hex_addr + "," + read_size_str
 
         self._write(str_to_write)
 
@@ -239,7 +239,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     
     def stack_hard_reset(self, chip_select: int):
         cs_str  = self._byteArrayToStrHex([chip_select])
-        self._write("STACK:HARD_RESET {cs_str}")
+        self._write("STACK:HARD_RST {cs_str}")
         
         self._read()
         if(not(self.ret_str.startswith("!OKAY"))):
