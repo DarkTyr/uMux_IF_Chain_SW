@@ -398,15 +398,15 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     def fan_pwm_get(self):
         self._write("FW:FAN:PWM?")
         self._read(wait_end=True, remove_term=True)
-        print(self.ret_str)
-
-        ## TODO: Parse and change to a percentage and then print/return that
-        
+        pwm = int(self.ret_str.rsplit("=")[1])
+        return pwm
+    
 
     def fan_pwm_set(self, pwm_percentage):
         pwm_max = 255
         pwm = int(pwm_percentage/100 * pwm_max) & 0xFF
-        self._write("FW:FAN:PWM {PWM}")
+        self._write(f"FW:FAN:PWM {pwm}")
+        self._read(wait_end=True)
         
 
     def adc_read_keys(self, print2console=False):
