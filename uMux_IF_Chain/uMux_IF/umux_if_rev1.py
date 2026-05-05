@@ -411,8 +411,8 @@ class UMux_IF_Rev1(uMux_IF_Board):
 
     def spi_loopback(self, nBytes: int, nItter: int) -> int:
         import random
-        if(nBytes > 255):
-            print("nBytes can not be greater than 255")
+        # if(nBytes > 255):
+        #     print("nBytes can not be greater than 255")
 
         failed_compares = 0
 
@@ -508,7 +508,7 @@ class UMux_IF_Rev1(uMux_IF_Board):
             return None
         eeprom_size = ret[1]
         ret = self._read(eeprom_size)
-        
+
         # Convert list of ints → bytes → ASCII string
         ascii_str = bytes(ret).decode("ascii", errors="ignore")
 
