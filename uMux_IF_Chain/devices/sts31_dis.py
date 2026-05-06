@@ -67,10 +67,10 @@ class STS31_DIS:
     
     def convert_temp_C2int(self, temp_C):
         # Convert temperature in C to 16 bit int
-        val_float = (temp_C + 45.0) / 175.0 * (2**16 - 1)
-        return int(val_float) & 0xFFFF
+        val_int = (temp_C + 45.0) / 175.0 * (2**16 - 1)
+        return int(val_int) & 0xFFFF
     
     def convert_temp_F2int(self, temp_F):
         # Convert temperature in F to 16 bit int
-        degrees_C = (temp_F - 32) / 1.8
+        degrees_C = (temp_F - 32.0) / 1.8
         return self.convert_temp2int(degrees_C)
