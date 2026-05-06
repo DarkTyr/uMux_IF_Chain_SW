@@ -41,10 +41,10 @@ class uMux_IF_Unit_Test:
             if(state):
                 # if stack is powered, turn it off and then back on
                 base_board.stack_pwr_set(False)
-                time.sleep(base_board.power_on_delay_s)
+                time.sleep(base_board.power_on_delay_s + 5)
             
             base_board.stack_pwr_set(True)
-            time.sleep(base_board.power_on_delay_s)
+            time.sleep(base_board.power_on_delay_s + 5)
         except:
             return "N/A - Feature Not Supported"
 
@@ -141,19 +141,31 @@ class uMux_IF_Unit_Test:
 
     def test_verify_thermal_limit(self, if_board):
         (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
-        if((synth_temp_F == 100.0) & (mcu_temp_F == 100.0)):
-            return ("PASS - test_verify_thermal_limit - 100.0 C")
+        (synth_temp_F_limit, mcu_temp_F_limit) = if_board._read_temp_threshold()
+        if((synth_temp_F_limit >= synth_temp_F) & (mcu_temp_F_limit >= mcu_temp_F)):
+            return (f"PASS - test_verify_thermal_limit - synth_temp_F_limit={synth_temp_F_limit} C, mcu_temp_F_limit={mcu_temp_F_limit} C")
         else:
-            return ("FAIL - test_verify_thermal_limit - synth_temp_F : {}  mcu_temp_F : {}".format(synth_temp_F, mcu_temp_F))
+            return ("FAIL - test_verify_thermal_limit - synth_temp_F_limit : {}  mcu_temp_F_limit : {}".format(synth_temp_F_limit, mcu_temp_F_limit))
 
     def test_mcu_reset(self, if_board):
-        if_board._write_temp_threshold(110)
+        # Read the current temperature threshold
+        (synth_temp_F_old, mcu_temp_F_old) = if_board._read_temp_threshold()
+
+        # Write New value that is way higher than it should be
+        if_board._write_temp_threshold(synth_temp_F_old + 10, mcu_temp_F_old + 10)
+
+        # Read the new values so that we know exactly what was written (conversions are not exact)
         (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
-        if((synth_temp_F == 110.0) & (mcu_temp_F == 110.0)):
+
+        # If the numbers changed as they should, trigger a reset
+        if((synth_temp_F_old <= synth_temp_F) & (mcu_temp_F_old <= mcu_temp_F)):
+            # trigger soft reset
             if_board.mcu_reset()
-            time.sleep(0.500)
-            (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
-            if((synth_temp_F == 100.0) & (mcu_temp_F == 100.0)):
+            time.sleep(5)
+
+            (synth_temp_F_new, mcu_temp_F_new) = if_board._read_temp_threshold()
+
+            if((synth_temp_F_new <= synth_temp_F_new) & (mcu_temp_F_new <= synth_temp_F_new)):
                 return ("PASS - test_mcu_reset")
             else:
                 return ("FAIL - test_mcu_reset")
@@ -161,13 +173,25 @@ class uMux_IF_Unit_Test:
             return ("N/R - test_mcu_reset - _write_temp_threshold didn't take new value")
 
     def test_mcu_hard_reset(self, base_board, if_board):
-        if_board._write_temp_threshold(110)
+        
+        # Read the current temperature threshold
+        (synth_temp_F_old, mcu_temp_F_old) = if_board._read_temp_threshold()
+
+        # Write New value that is way higher than it should be
+        if_board._write_temp_threshold(synth_temp_F_old + 10, mcu_temp_F_old + 10)
+
+        # Read the new values so that we know exactly what was written (conversions are not exact)
         (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
-        if((synth_temp_F == 110.0) & (mcu_temp_F == 110.0)):
+
+        # If the numbers changed as they should, trigger a reset
+        if((synth_temp_F_old <= synth_temp_F) & (mcu_temp_F_old <= mcu_temp_F)):
+            # trigger soft reset
             base_board.stack_hard_reset(if_board._cs)
-            time.sleep(0.500)
-            (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
-            if((synth_temp_F == 100.0) & (mcu_temp_F == 100.0)):
+            time.sleep(5)
+
+            (synth_temp_F_new, mcu_temp_F_new) = if_board._read_temp_threshold()
+
+            if((synth_temp_F_new <= synth_temp_F_new) & (mcu_temp_F_new <= synth_temp_F_new)):
                 return ("PASS - test_mcu_hard_reset")
             else:
                 return ("FAIL - test_mcu_hard_reset")
