@@ -164,7 +164,7 @@ class uMux_IF_Unit_Test:
         if_board._write_temp_threshold(110)
         (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
         if((synth_temp_F == 110.0) & (mcu_temp_F == 110.0)):
-            base_board.spi_hard_reset(if_board._cs)
+            base_board.stack_hard_reset(if_board._cs)
             time.sleep(0.500)
             (synth_temp_F, mcu_temp_F) = if_board._read_temp_threshold()
             if((synth_temp_F == 100.0) & (mcu_temp_F == 100.0)):
