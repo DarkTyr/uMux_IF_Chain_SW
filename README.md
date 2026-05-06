@@ -10,7 +10,7 @@ With your development UV python environment active navigate to the top directory
 uv add --editable --active --dev .
 ```
 
-the more normal method using "-e" no longer functions unless you use a setup.py. the active flag means it will install it in the currently active env. 
+the more normal method using "-e" with pip install no longer functions unless you use a setup.py. the active flag means it will install it in the currently active env.
 
 ## Installation
 
@@ -24,59 +24,18 @@ uv pip install .
 
 ## Simple Script to run
 
-TODO: Update these calls now, since we properly install the scripts they should be runnable from the env terminal.
+The most basic script to run is the startup_script which can do a couple simple tasks like initialize the IF_Boards, turn base_band loop back on and off and so forth.
 
-- navigate to "uMux_IF_Chain_SW/uMux_IF_Chain/scripts"
-- start iPython
-- in iPython, run windows_startup.py /dev/ttyACM0
+```terminal
+uMux_IF_Chain-startup_script tcp://192.168.0.50:5025 -i 
+```
 
-When that runs you shoud see output listing Board IDN, Device Serial number, firmware version, and FW timestamp. There will be another printout "DEV_STACK : n" where n is a hex number. N is a chip select mapping for the installed number of IF boards. 0x1 means that one board was detected. 0x3 means two boards, 0x7 is three boards. 
+NOTE: If interfaced through a Raspberry PI, the port is 2021
 
-- type "ifb" and hit enter. This should be a list of classes matching the number of IF boards installed.
+Connect via usb cable ot the host computer, it will show up as a serial com port. Below is an example for a Windows OS. 
 
-When starting from a powered down state you must call the synth_init() method for each IF board (ifb is the list)
+```terminal
+uMux_IF_Chain-startup_script serial:///COM4 -i 
+```
 
-- ifb[0].synth_init()
-
-At power up, the base band loopback is enabled. This loops the DAC output around to the ADCs internally with no modifications except PCB and mux losses. 
-
-to enable the loopback
-
-- ifb[0].base_band_loop_back_enable()
-
-to disable the loopback
-
-- ifb[0].base_band_loop_back_disable()
-
-After intialization of the synthesizer, the user can set the frequency by calling:
-
-- ifb[0].synth_set_Frequency_MHz(4500)
-
-Where 4500 is the frequency is megahertz. There is a frequency resolution of 200kHz, this could be changed later on if need be.
-The set frequency method returns the actual frequency that was calculated.
-
-if you don't want to run the script, a user can instantiate the base_board class and IF board classes from anywhere (assuming correct conda environment).
-
-'''python
-from uMux_IF_Chain.base_board import base_board_rev3
-bb = base_board_rev3.Base_Board_Rev3(port="/dev/ttyACM0")
-
-# Determine what IF_Boards Rev1 are present
-dev_stack = bb.spi_get_dev_stack()
-n_ifb = dev_stack.bit_length()
-ifb = [0x00] * n_ifb
-
-# Instantiate classes for the IF_Boards Rev1
-for i in range(dev_stack.bit_length()):
-    ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
-
-for i in ifb:
-    i.synth_init()
-    i.base_band_loop_back_disable()
-
-ifb[0].synth_set_Frequency_MHz(4500)
-ifb[1].synth_Set_Frequency_MHz(5500)
-ifb[2].synth_set_Frequency_MHz(6500)
-ifb[3].synth_set_Frequency_MHz(7500)
-
-'''
+There is a simple gui that can also be ran that can be used to interface to the IF_Boards. This is useful for tuning the LO Nulling values. It accepts the same URL like argument.
