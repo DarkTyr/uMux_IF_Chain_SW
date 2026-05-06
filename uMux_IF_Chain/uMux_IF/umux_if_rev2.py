@@ -631,14 +631,15 @@ class UMux_IF_Rev2(uMux_IF_Board):
             print("Read threshold Tempereatures Failed")
             return (None, None)
 
-    def _write_temp_threshold(self, temp_C):
+    def _write_temp_threshold(self, temp_C_Synth, temp_C_MCU):
         array = [0x00] * _CMD.CMD_LEN
         array[0] = (_CMD.TEMP_THLD << 1) | _CMD.W
-        temp_int = self._tmp.convert_temp_C2int(temp_C)
-        array[1] = 0xFF & (temp_int)
-        array[2] = 0xFF & (temp_int)
-        array[3] = array[1]
-        array[4] = array[2]
+        temp_int = self._tmp.convert_temp_C2int(temp_C_Synth)
+        array[1] = 0xFF & (temp_int >> 8)
+        array[2] = 0xFF & (temp_int >> 0)
+        temp_int = self._tmp.convert_temp_C2int(temp_C_MCU)
+        array[3] = 0xFF & (temp_int >> 8)
+        array[4] = 0xFF & (temp_int >> 0)
         self._write(array)
         ret = self._read(_RET_VAL.RET_LEN)
         if(ret[0] & _RET_VAL.MASK_WRITE_GOOD != _RET_VAL.MASK_WRITE_GOOD):
