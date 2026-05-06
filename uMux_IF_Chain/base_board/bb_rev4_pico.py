@@ -243,7 +243,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
     
     def stack_hard_reset(self, chip_select: int):
         cs_str  = self._byteArrayToStrHex([chip_select])
-        self._write("STACK:HARD_RST {cs_str}")
+        self._write(f"STACK:HARD_RST {cs_str}")
         
         self._read()
         if(not(self.ret_str.startswith("!OKAY"))):
