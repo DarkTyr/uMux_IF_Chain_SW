@@ -116,8 +116,9 @@ class uMux_IF_Board:
 from uMux_IF_Chain.uMux_IF import umux_if_rev1
 from uMux_IF_Chain.uMux_IF import umux_if_rev2
 
-def open_uMux_IF_Board(base_board, chip_select):
+def open_uMux_IF_Board(base_board, chip_select, debug=0):
     board = uMux_IF_Board(base_board=base_board, chip_select=chip_select)
+    board.debug = debug
     board.read_FWID()
 
     if "uMux_IF_Rev1_Base 1.0.0" in board.firmware_id:

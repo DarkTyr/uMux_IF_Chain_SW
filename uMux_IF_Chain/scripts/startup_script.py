@@ -65,7 +65,7 @@ def main():
     # Instantiate classes for the IF_Boards Rev1
     for i in range(n_ifb):
         # ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
-        ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i)
+        ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i, debug=args.verbosity)
         print(f"    Found {ifb[i].HW_ID}")
         ifb[i].debug = args.verbosity
 
