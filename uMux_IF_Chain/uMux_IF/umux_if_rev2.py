@@ -611,7 +611,7 @@ class UMux_IF_Rev2(uMux_IF_Board):
             return None
 
         self._write(list(final_bytes))
-        time.sleep(10)
+        time.sleep(1)
         ret = self._read(_RET_VAL.RET_LEN)
         if(ret[0] & _RET_VAL.MASK_WRITE_GOOD != _RET_VAL.MASK_WRITE_GOOD):
             print("Something went wrong during writing to the EEPROM")
