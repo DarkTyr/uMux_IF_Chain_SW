@@ -395,9 +395,7 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
 
         return [si_temp, smps_temp]
 
-    ##########################################################
-    ## TODO: Add file handling methods here to list, write, read, the files on the internal file system
-    ##########################################################
+
     def file_list(self)-> list:
         '''
         Method that returns a list of tuples. Each tuple is the filename and then the size in bytes.
@@ -570,7 +568,18 @@ class BB_Rev4_Pico(umux_if_base_board.uMux_IF_BaseBoard):
         if(print2console):
             print(self.ret_str)
 
+    def bb_soft_reset(self):
+        self._write("FW:SOFT_RST")
+        self._read(wait_end=False)
+        print("The User must now reinstantiate the Baseboard Class to reestablish the connection to the device. The device will have reset and closed the connection.")
 
-    ##########################################################
-    ## TODO: Add methods for Ethernet status
-    ##########################################################
+    def get_pcb_sn(self):
+        self._write("*PCB_SN?")
+        self._read(wait_end=False, remove_term=True)
+        self.pcb_sn = self.ret_str
+        return self.ret_str
+
+    def eth_status(self):
+        self._write("ETH:STATus?")
+        self._read(wait_end=True, remove_term=False)
+        print(self.ret_str)
