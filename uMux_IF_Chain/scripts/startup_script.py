@@ -101,6 +101,7 @@ def main():
 
     # If we performed a synth_init, we should go back and check the status of the synthesizers
     if (args.synth_init == True):
+        time.sleep(1)
         for i in range(n_ifb):
             ret = ifb[i].synth_lock_status()
             if (args.verbosity == 0):
