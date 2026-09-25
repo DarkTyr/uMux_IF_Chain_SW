@@ -62,12 +62,15 @@ def main():
     n_ifb = dev_stack.bit_length()
     ifb = [0x00] * n_ifb
 
-    # Instantiate classes for the IF_Boards Rev1
-    for i in range(n_ifb):
-        # ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
-        ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i, debug=args.verbosity)
-        print(f"    Found {ifb[i].HW_ID}")
-        ifb[i].debug = args.verbosity
+    if (args.skip_startup == False):
+        # Instantiate classes for the IF_Boards Rev1
+        for i in range(n_ifb):
+            # ifb[i] = uMux_IF_Rev1.UMux_IF_Rev1(bb, 0x1 << i)
+            ifb[i] = umux_if_board.open_uMux_IF_Board(bb, 0x1 << i, debug=args.verbosity)
+            print(f"    Found {ifb[i].HW_ID}")
+            ifb[i].debug = args.verbosity
+    else:
+        print("Skipping IF Board class instantiation")
 
 
     # Check for synth_init argument and initialize the synthesizers
