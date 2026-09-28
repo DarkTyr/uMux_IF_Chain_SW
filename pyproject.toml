@@ -41,7 +41,7 @@ members = [
 ]
 
 [tool.uv.sources]
-umux-if-chain-sw = { workspace = true, editable = true }
+umux-if-chain-sw = { workspace = true }
 
 [dependency-groups]
 dev = [
