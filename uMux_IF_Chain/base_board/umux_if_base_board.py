@@ -24,7 +24,7 @@ class uMux_IF_BaseBoard:
             # self.com = channels.serialchan.serialchan(port=port, timeout=self._timeout)
             self.com = channels.serialchan.SerialChan(port=port, timeout=self._timeout)
         elif (url != None):
-            self.com = channels.fromurl(url, defaultport=3032, defaultparams=dict(timeout=self._timeout, buffering=0))
+            self.com = channels.fromurl(url, defaultport=2021, defaultparams=dict(timeout=self._timeout, buffering=0))
 
         if doopen: 
             self.open()
