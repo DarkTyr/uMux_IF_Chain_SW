@@ -555,7 +555,7 @@ class UMux_IF_Rev2(uMux_IF_Board):
         self.eeprom = [ascii_str[i:i+16] for i in range(0, len(ascii_str), 16)]
 
         if(print_human_readable):
-            print("____ uMux_IF_Rev1 ____")
+            print("____ uMux_IF_Rev2 ____")
             print("CS = 0x{:02X}".format(self._cs))
             for c in self.eeprom:
                 print("  " + c)
