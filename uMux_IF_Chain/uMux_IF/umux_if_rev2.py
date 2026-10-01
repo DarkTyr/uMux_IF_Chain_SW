@@ -190,9 +190,9 @@ class UMux_IF_Rev2(uMux_IF_Board):
             raise ValueError("Value too low: dac_val_I")
 
         if(dac_val_Q > 2**self._dac_nbits):
-            raise ValueError("Value too high: dac_val_I")
+            raise ValueError("Value too high: dac_val_Q")
         elif(dac_val_Q < 0):
-            raise ValueError("Value too low: dac_val_I")
+            raise ValueError("Value too low: dac_val_Q")
 
         data = [0x00] * _CMD.CMD_LEN
         temp_int = dac_val_I << 2
@@ -232,9 +232,9 @@ class UMux_IF_Rev2(uMux_IF_Board):
             raise ValueError("Value too low: dac_val_I")
 
         if(dac_val_Q > 2**self._dac_nbits):
-            raise ValueError("Value too high: dac_val_I")
+            raise ValueError("Value too high: dac_val_Q")
         elif(dac_val_Q < 0):
-            raise ValueError("Value too low: dac_val_I")
+            raise ValueError("Value too low: dac_val_Q")
 
         data = [0x00] * _CMD.CMD_LEN
         temp_int = dac_val_I << 2
